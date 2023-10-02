@@ -66,32 +66,6 @@ enviados = []
 inicio = 1
 detener_programa = False  # Variable para detener el programa
 
-class ProgressWindow:
-    def __init__(self, root):
-        self.top = tk.Toplevel(root)
-        self.top.title("Progreso")
-        self.progress_label = tk.Label(self.top, text="Interacciones realizadas: 0")
-        self.progress_label.pack(padx=10, pady=10)
-        self.stop_button = tk.Button(self.top, text="Detener", command=self.detener)
-        self.stop_button.pack(padx=10, pady=10)
-        self.top.attributes("-topmost", True)  # Establece la ventana como una ventana superior
-        self.top.withdraw()  # Oculta la ventana al principio
-
-    def show(self):
-        self.top.deiconify()
-
-    def hide(self):
-        self.top.withdraw()
-
-    def update_progress(self, count):
-        self.progress_label.config(text=f"Interacciones realizadas: {count}")
-
-    def detener(self):
-        global detener_programa
-        detener_programa = True
-        self.hide()
-        messagebox.showinfo("Detener", "El programa ha sido detenido.")
-
 def seleccionar_imagenes():
     images = []
 
@@ -108,7 +82,7 @@ def seleccionar_imagenes():
 
     return images
 # Programa sin envio de imagenes
-def programSinImage(archivo_excel, mensaje, progress_window):
+def programSinImage(archivo_excel, mensaje):
 
     libro = openpyxl.load_workbook(archivo_excel)
     hoja = libro["Hoja1"]
@@ -196,15 +170,35 @@ def programSinImage(archivo_excel, mensaje, progress_window):
 
 def buscar_base_de_datos():
     global BaseDatosMasiva
+    print("Buscar Base de Datos")
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
     if BaseDatosMasiva:
-        base_datos_label.config(text="Base de Datos seleccionada: " + BaseDatosMasiva)
+        print("Base de Datos seleccionada: " + BaseDatosMasiva)
 
-def introducir_mensaje(mensaje):
+def validarMensaje():
+    mensaje = str(input("El mensaje es correcto? y/n "))
+    while True:
+        try:
+            while mensaje!="y" and mensaje!="n":
+                mensaje = str(input("El mensaje es correcto? y/n "))
+        except:
+            mensaje = str(input("El mensaje es correcto? y/n "))
+        else:
+            if mensaje=="y":
+                return True
+            else:
+                return False
+    
+
+def introducir_mensaje():
     global MensajeMasivo
-    MensajeMasivo = mensaje
+    MensajeMasivo = str(input("Introduzca el Mensaje:\n"))
     if MensajeMasivo:
         print("Mensaje escrito: " + MensajeMasivo)
+        mensaje=validarMensaje()
+        if not mensaje:
+            introducir_mensaje()
+        
 
 
 def copiar_imagen_al_portapapeles(ruta_imagen):
@@ -218,76 +212,25 @@ def copiar_imagen_al_portapapeles(ruta_imagen):
         print('Error al copiar la imagen al portapapeles:', str(e))
         
 def buscar_imagen():
+    print("Buscando Imagen")
     global ImagenMasiva
     ImagenMasiva = seleccionar_imagenes()
     if ImagenMasiva:
-        imagen_label.config(text="Imagen seleccionada: " + str(len(ImagenMasiva)))
+        print("Imagenes seleccionadas: " + str(len(ImagenMasiva)))
         for imagen in ImagenMasiva:
             copiar_imagen_al_portapapeles(imagen)
 
 
-def comenzar():
-    global detener_programa
-    detener_programa = False  # Reinicia la variable de detención
-    
-    try:
-        if BaseDatosMasiva and MensajeMasivo:
-            
-            t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo, progress_window))
-            
-        
-    except:
-        informacion_label.config(text="Complete todos los campos antes de comenzar.")
 
-
-
-
-# Crear la ventana principal
-root = tk.Tk()
-root.title("Mensajería Masiva")
-
-# Crear y configurar widgets
-base_datos_button = tk.Button(root, text="Buscar Base de Datos", command=buscar_base_de_datos)
-base_datos_button.pack(pady=10)
-
-base_datos_label = tk.Label(root, text="", fg="green")
-base_datos_label.pack()
-
-mensaje_label = tk.Label(root, text="", fg="green")
-mensaje_label.pack()
-
-mensaje_entry = tk.Entry(root, width=50)
-mensaje_entry.pack()
-
-mensaje_button = tk.Button(root, text="Introducir Mensaje", command=introducir_mensaje)
-mensaje_button.pack()
-
-imagen_label = tk.Label(root, text="", fg="green")
-imagen_label.pack()
-
-imagen_button = tk.Button(root, text="Buscar Imagen", command=buscar_imagen)
-imagen_button.pack()
-
-comenzar_button = tk.Button(root, text="Comenzar", command=comenzar)
-comenzar_button.pack(pady=10)
-
-informacion_label = tk.Label(root, text="", fg="red")
-informacion_label.pack(pady=10)
-
-# Ventana de progreso
-#progress_window = ProgressWindow(root)
-
-# Ejecutar la aplicación
-# root.mainloop()
 
 def validarImagen():
-    imagen = str(input("1Desea Enviar Imagen? y/n: "))
+    imagen = str(input("Desea Enviar Imagen? y/n: "))
     while True:
         try:
             while imagen!="y" and imagen!="n":
-                imagen = str(input("(2Desea Enviar Imagen? y/n: "))
+                imagen = str(input("Desea Enviar Imagen? y/n: "))
         except:
-            imagen = str(input("(3Desea Enviar Imagen? y/n: "))
+            imagen = str(input("Desea Enviar Imagen? y/n: "))
         else:
             if imagen=="y":
                 return True
@@ -300,9 +243,9 @@ def Menu():
     Bienvenido(5)
     buscar_base_de_datos()
     image=validarImagen()
-    introducir_mensaje()
     if image:
         buscar_imagen()
+        introducir_mensaje()
         try:
             if BaseDatosMasiva and MensajeMasivo:
                 t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
@@ -310,6 +253,7 @@ def Menu():
         except:
             print("Complete todos los campos antes de comenzar.")
     else:
+        introducir_mensaje()
         try:
             if BaseDatosMasiva and MensajeMasivo:
                 t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
