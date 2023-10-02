@@ -1,7 +1,4 @@
-import webbrowser as web
-import time
 import openpyxl
-from timeit import default_timer
 import threading
 import os
 import tkinter as tk
@@ -14,8 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
-
-import time
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 extension1 = ["*.xlsx"]
@@ -53,9 +49,6 @@ class ProgressWindow:
 
 def seleccionar_imagenes():
     images = []
-    msg = "Seleccione imágenes para enviar"
-    title = "Buscar Imágenes"
-    filetypes = extension2
 
     while True:
         filepath = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.png")])
@@ -133,9 +126,13 @@ def programSinImage(archivo_excel, mensaje, progress_window):
 
             # enviar mensaje con enter
             browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-            # hacer click en el boton de nuevo mensaje
-            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a').click()
-                
+            
+            # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
+            ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+            
+            # Enviar imagen con Enter
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+                    
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
         except ElementClickInterceptedException as e:

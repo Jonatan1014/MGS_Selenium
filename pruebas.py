@@ -1,4 +1,3 @@
-import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -50,9 +49,6 @@ try:
     # hacer click en el boton de nuevo mensaje
     browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
 
-    # hacer click en la entrada de nuevo mensaje
-    browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
-
     # agregar numero de telefono
     browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys("3174466434")
 
@@ -74,23 +70,6 @@ try:
     # Enviar imagen con Enter
     browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
     
-    """
-    # Esperar a que aparezca la ventana de explorador de archivos
-    ventana_explorador_archivos = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'selector_de_la_ventana_explorador_archivos')))
-
-    # Pegar la ruta de la imagen en el campo de explorador de archivos
-    ruta_de_la_imagen = 'ruta_de_la_imagen'  # Reemplaza con la ruta real de tu imagen
-    ventana_explorador_archivos.send_keys(ruta_de_la_imagen)
-
-    # Presionar Enter para cargar la imagen
-    ventana_explorador_archivos.send_keys(Keys.ENTER)
-
-    # Hacer clic en el botón de enviar mensaje
-    browser.find_element(By.CSS_SELECTOR, 'selector_del_boton_enviar_mensaje').click()
-    # hacer click en el boton de nuevo mensaje
-    browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a').click()
-    """
-    time.sleep(6)
         
 except StaleElementReferenceException as e:
     print("Error: Elemento de página obsoleto. ", str(e))
