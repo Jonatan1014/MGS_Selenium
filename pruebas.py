@@ -7,7 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
 
-
+import time
 # Configura el servicio de ChromeDriver
 chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
 chrome_service = ChromeService(chrome_driver_path)
@@ -50,7 +50,7 @@ try:
     browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
 
     # agregar numero de telefono
-    browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys("3174466434")
+    browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys("3174466432")
 
     # seleccionar el numero ingresado
     browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
@@ -70,7 +70,7 @@ try:
     # Enviar imagen con Enter
     browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
     
-        
+    #time.sleep(6)
 except StaleElementReferenceException as e:
     print("Error: Elemento de página obsoleto. ", str(e))
 except ElementClickInterceptedException as e:

@@ -1,9 +1,6 @@
 import openpyxl
-import threading
 import os
-import tkinter as tk
 from tkinter import filedialog
-from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -13,11 +10,28 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
 import os
-from PIL import Image, ImageGrab
 import time
+os.system('color 1' if os.name == 'nt' else 'clear')
+
+def limpiarcmd():
+    os.system('cls' if os.name == 'nt' else 'clear')
+ 
+def interfaz():
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
+                                               _/ |                                  
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
     
 def Bienvenido(duration):
-    os.system('cls' if os.name == 'nt' else 'clear')
+    limpiarcmd()
     chars = ['|', '/', '-', '\\']
     num_chars = len(chars)
     start_time = time.time()
@@ -53,44 +67,17 @@ def Bienvenido(duration):
     print('\rIniciado Con Exito!   ')
     time.sleep(2)
     
-    
-    
-    
-        
-
-
 extension1 = ["*.xlsx"]
-extension2 = ["*.jpg", "*.png"]
-extension3 = [".jpg", ".png"]
-enviados = []
-inicio = 1
-detener_programa = False  # Variable para detener el programa
 
-def seleccionar_imagenes():
-    images = []
 
-    while True:
-        filepath = filedialog.askopenfilename(filetypes=[("Image Files", "*.jpg;*.png")])
-        if filepath == '':
-            break
-        else:
-            _, extension = os.path.splitext(filepath)
-            if extension.lower() in extension3:
-                images.append(filepath)
-            else:
-                messagebox.showerror("Error", f"La imagen '{filepath}' no tiene una extensión válida. Por favor, seleccione imágenes con extensiones .jpg o .png.")
-
-    return images
-# Programa sin envio de imagenes
-def programSinImage(archivo_excel, mensaje):
-
+# Programa con envio de imagenes
+def program(archivo_excel, mensaje):            
     libro = openpyxl.load_workbook(archivo_excel)
     hoja = libro["Hoja1"]
     chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
     chrome_service = ChromeService(chrome_driver_path)
-
     chrome_service.start()
-
+    
     # Configura las opciones del navegador
     options = webdriver.ChromeOptions()
     # Configura opciones adicionales si es necesario
@@ -159,6 +146,85 @@ def programSinImage(archivo_excel, mensaje):
         except Exception as e:
             print("Ocurrió un error inesperado: ", str(e))
 
+    # Cierra el navegador y detiene el servicio
+    browser.quit()
+    chrome_service.stop()
+    print("Envio completado")
+        
+    libro.close()
+
+# Programa sin envio de imagenes
+def programSinImagenes(archivo_excel, mensaje):            
+
+    libro = openpyxl.load_workbook(archivo_excel)
+    hoja = libro["Hoja1"]
+    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+    chrome_service = ChromeService(chrome_driver_path)
+
+    chrome_service.start()
+
+    # Configura las opciones del navegador
+    options = webdriver.ChromeOptions()
+    # Configura opciones adicionales si es necesario
+    # Deshabilita las notificaciones
+    options.add_argument("--disable-notifications")
+    # Inicializa el WebDriver utilizando el servicio y las opciones
+    browser = webdriver.Chrome(service=chrome_service, options=options)
+
+    # Abre la página web
+    browser.get('https://messages.google.com/web/conversations')
+
+    # Espera a que el elemento del QR esté presente
+    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+
+    # Espera a que la imagen del QR cargue
+    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+
+    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
+    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
+
+    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
+    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
+    print("El QR se ha escaneado.")
+
+    # Espera a que aparezca el botón
+    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
+
+    # Buscar el elemento de nuevo mensaje
+    WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
+
+    for fila in hoja.iter_rows(min_row=1, values_only=True):
+        Celular = " - ".join(map(str, fila))
+        try:
+            
+            # hacer click en el boton de nuevo mensaje
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
+
+            # hacer click en la entrada de nuevo mensaje
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
+
+            # agregar numero de telefono
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+
+            # seleccionar el numero ingresado
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
+            
+            # Espera a que la casilla de texto esté presente y sea visible
+            WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+
+            # escribir mensaje 
+            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(mensaje)
+
+            # enviar mensaje con enter
+            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+                    
+        except StaleElementReferenceException as e:
+            print("Error: Elemento de página obsoleto. ", str(e))
+        except ElementClickInterceptedException as e:
+            print("Error: Intercepción de clic en el elemento. ", str(e))
+        except Exception as e:
+            print("Ocurrió un error inesperado: ", str(e))
+
     
     # Cierra el navegador y detiene el servicio
     browser.quit()
@@ -167,13 +233,31 @@ def programSinImage(archivo_excel, mensaje):
         
     libro.close()
 
-
 def buscar_base_de_datos():
     global BaseDatosMasiva
     print("Buscar Base de Datos")
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
     if BaseDatosMasiva:
         print("Base de Datos seleccionada: " + BaseDatosMasiva)
+    else:
+        salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
+        limpiarcmd()
+        while True:
+            try:
+                while salir!="y" and salir!="n":
+                    salir=str(input("Opcion Invalida\n¿Desea salir? y/n\n"))
+                    limpiarcmd()
+            except:
+                salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
+            else:
+                if salir=="y":
+                    break
+                else:
+                    buscar_base_de_datos()
+                    
+                
+                
+        buscar_base_de_datos()
 
 def validarMensaje():
     mensaje = str(input("El mensaje es correcto? y/n "))
@@ -189,7 +273,6 @@ def validarMensaje():
             else:
                 return False
     
-
 def introducir_mensaje():
     global MensajeMasivo
     MensajeMasivo = str(input("Introduzca el Mensaje:\n"))
@@ -198,30 +281,6 @@ def introducir_mensaje():
         mensaje=validarMensaje()
         if not mensaje:
             introducir_mensaje()
-        
-
-
-def copiar_imagen_al_portapapeles(ruta_imagen):
-    try:
-        imagen = Image.open(ruta_imagen)
-        imagen.save('imagen_temporal.png')
-        ImageGrab.grabclipboard().clear()
-        ImageGrab.grabclipboard().set_image(imagen)
-        print('La imagen ha sido copiada al portapapeles.')
-    except Exception as e:
-        print('Error al copiar la imagen al portapapeles:', str(e))
-        
-def buscar_imagen():
-    print("Buscando Imagen")
-    global ImagenMasiva
-    ImagenMasiva = seleccionar_imagenes()
-    if ImagenMasiva:
-        print("Imagenes seleccionadas: " + str(len(ImagenMasiva)))
-        for imagen in ImagenMasiva:
-            copiar_imagen_al_portapapeles(imagen)
-
-
-
 
 def validarImagen():
     imagen = str(input("Desea Enviar Imagen? y/n: "))
@@ -239,26 +298,31 @@ def validarImagen():
                 
                 
 def Menu():
-    # Llamar a la función para limpiar la pantalla
+   
     Bienvenido(5)
     buscar_base_de_datos()
+    time.sleep(1)
+    limpiarcmd()
+    
     image=validarImagen()
+    time.sleep(1)
+    limpiarcmd()
     if image:
-        buscar_imagen()
         introducir_mensaje()
+        time.sleep(1)
+        limpiarcmd()
         try:
             if BaseDatosMasiva and MensajeMasivo:
-                t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
-                
+                program(BaseDatosMasiva, MensajeMasivo)
         except:
             print("Complete todos los campos antes de comenzar.")
     else:
         introducir_mensaje()
+        time.sleep(1)
+        limpiarcmd()
         try:
             if BaseDatosMasiva and MensajeMasivo:
-                t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
-                
+                programSinImagenes(BaseDatosMasiva, MensajeMasivo)
         except:
             print("Complete todos los campos antes de comenzar.")
-        
 Menu()
