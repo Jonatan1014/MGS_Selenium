@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
-import time
+
 
 # Configura el servicio de ChromeDriver
 chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta

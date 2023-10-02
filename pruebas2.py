@@ -12,6 +12,51 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
+import os
+from PIL import Image, ImageGrab
+import time
+    
+def Bienvenido(duration):
+    os.system('cls' if os.name == 'nt' else 'clear')
+    chars = ['|', '/', '-', '\\']
+    num_chars = len(chars)
+    start_time = time.time()
+    
+    while time.time() - start_time < duration:
+        for i in range(num_chars):
+            print(f'\rCargando {chars[i]}', end='')
+            time.sleep(0.1)
+    
+    print('\rCarga Completa!   ')
+    
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
+                                               _/ |                                  
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
+    chars = ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷']
+    num_chars = len(chars)
+    start_time = time.time()
+    
+    while time.time() - start_time < duration:
+        for i in range(num_chars):
+            print(f'\rIniciando Programa {chars[i]}', end='')
+            time.sleep(0.1)
+    
+    print('\rIniciado Con Exito!   ')
+    time.sleep(2)
+    
+    
+    
+    
+        
 
 
 extension1 = ["*.xlsx"]
@@ -155,17 +200,31 @@ def buscar_base_de_datos():
     if BaseDatosMasiva:
         base_datos_label.config(text="Base de Datos seleccionada: " + BaseDatosMasiva)
 
-def introducir_mensaje():
+def introducir_mensaje(mensaje):
     global MensajeMasivo
-    MensajeMasivo = mensaje_entry.get()
+    MensajeMasivo = mensaje
     if MensajeMasivo:
-        mensaje_label.config(text="Mensaje escrito: " + MensajeMasivo)
+        print("Mensaje escrito: " + MensajeMasivo)
 
+
+def copiar_imagen_al_portapapeles(ruta_imagen):
+    try:
+        imagen = Image.open(ruta_imagen)
+        imagen.save('imagen_temporal.png')
+        ImageGrab.grabclipboard().clear()
+        ImageGrab.grabclipboard().set_image(imagen)
+        print('La imagen ha sido copiada al portapapeles.')
+    except Exception as e:
+        print('Error al copiar la imagen al portapapeles:', str(e))
+        
 def buscar_imagen():
     global ImagenMasiva
     ImagenMasiva = seleccionar_imagenes()
     if ImagenMasiva:
         imagen_label.config(text="Imagen seleccionada: " + str(len(ImagenMasiva)))
+        for imagen in ImagenMasiva:
+            copiar_imagen_al_portapapeles(imagen)
+
 
 def comenzar():
     global detener_programa
@@ -180,9 +239,6 @@ def comenzar():
     except:
         informacion_label.config(text="Complete todos los campos antes de comenzar.")
 
-    else:
-        t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo, progress_window))
-        t.start()
 
 
 
@@ -219,7 +275,46 @@ informacion_label = tk.Label(root, text="", fg="red")
 informacion_label.pack(pady=10)
 
 # Ventana de progreso
-progress_window = ProgressWindow(root)
+#progress_window = ProgressWindow(root)
 
 # Ejecutar la aplicación
-root.mainloop()
+# root.mainloop()
+
+def validarImagen():
+    imagen = str(input("1Desea Enviar Imagen? y/n: "))
+    while True:
+        try:
+            while imagen!="y" and imagen!="n":
+                imagen = str(input("(2Desea Enviar Imagen? y/n: "))
+        except:
+            imagen = str(input("(3Desea Enviar Imagen? y/n: "))
+        else:
+            if imagen=="y":
+                return True
+            else:
+                return False
+                
+                
+def Menu():
+    # Llamar a la función para limpiar la pantalla
+    Bienvenido(5)
+    buscar_base_de_datos()
+    image=validarImagen()
+    introducir_mensaje()
+    if image:
+        buscar_imagen()
+        try:
+            if BaseDatosMasiva and MensajeMasivo:
+                t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
+                
+        except:
+            print("Complete todos los campos antes de comenzar.")
+    else:
+        try:
+            if BaseDatosMasiva and MensajeMasivo:
+                t = threading.Thread(target=programSinImage, args=(BaseDatosMasiva, MensajeMasivo))
+                
+        except:
+            print("Complete todos los campos antes de comenzar.")
+        
+Menu()
