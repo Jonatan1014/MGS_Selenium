@@ -109,7 +109,7 @@ def program(archivo_excel, mensaje):
 
     # Buscar el elemento de nuevo mensaje
     WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
-
+    cont=0
     for fila in hoja.iter_rows(min_row=1, values_only=True):
         Celular = " - ".join(map(str, fila))
         try:
@@ -149,6 +149,11 @@ def program(archivo_excel, mensaje):
             
             # Enviar imagen con Enter
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            
+            cont=cont+1
+            print(cont)
+            limpiarcmd()
+            
             
                     
         except StaleElementReferenceException as e:
@@ -239,6 +244,9 @@ def programSinImagenes(archivo_excel, mensaje):
 
             # Enviar el último párrafo
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            cont=cont+1
+            print(cont)
+            limpiarcmd()
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
