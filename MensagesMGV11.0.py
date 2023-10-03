@@ -149,7 +149,7 @@ def program(archivo_excel, mensaje):
             
             # Enviar imagen con Enter
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-            time.sleep(3)
+            
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -159,6 +159,7 @@ def program(archivo_excel, mensaje):
             print("Ocurrió un error inesperado: ", str(e))
 
     # Cierra el navegador y detiene el servicio
+    time.sleep(3)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
@@ -318,7 +319,7 @@ def validarImagen():
                 return True
             else:
                 return False
-                n
+                
                 
 def Menu():
    
