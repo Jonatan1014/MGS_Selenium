@@ -341,6 +341,7 @@ def Menu():
             print("Complete todos los campos antes de comenzar.")
     else:
         introducir_mensaje()
+
         time.sleep(1)
         limpiarcmd()
         try:
