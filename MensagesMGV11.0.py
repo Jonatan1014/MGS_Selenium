@@ -1,9 +1,6 @@
 import openpyxl
-import threading
 import os
-import tkinter as tk
 from tkinter import filedialog
-from tkinter import messagebox
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -13,13 +10,28 @@ from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
 import os
-from PIL import Image, ImageGrab
 import time
-import pyperclip
+import easygui as eg
+
+os.system('color 1' if os.name == 'nt' else 'clear')
 
 def limpiarcmd():
     os.system('cls' if os.name == 'nt' else 'clear')
  
+def interfaz():
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
+                                               _/ |                                  
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
+    
 def Bienvenido(duration):
     limpiarcmd()
     chars = ['|', '/', '-', '\\']
@@ -117,17 +129,27 @@ def program(archivo_excel, mensaje):
             # Espera a que la casilla de texto esté presente y sea visible
             WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
 
-            # escribir mensaje 
-            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(mensaje)
+            # Dividir el mensaje en párrafos
+            parrafos = MensajeMasivo.split('\n')
 
-            # enviar mensaje con enter
-            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            # Escribir cada párrafo en el área de texto
+            for i, parrafo in enumerate(parrafos):
+                # Escribir el párrafo actual
+                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+                # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+                if i < len(parrafos) - 1:
+                    ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+            # Enviar el último párrafo
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
             
             # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
             ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
             
             # Enviar imagen con Enter
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            time.sleep(3)
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -201,12 +223,21 @@ def programSinImagenes(archivo_excel, mensaje):
             
             # Espera a que la casilla de texto esté presente y sea visible
             WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+            
+            # Dividir el mensaje en párrafos
+            parrafos = MensajeMasivo.split('\n')
 
-            # escribir mensaje 
-            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(mensaje)
+            # Escribir cada párrafo en el área de texto
+            for i, parrafo in enumerate(parrafos):
+                # Escribir el párrafo actual
+                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
 
-            # enviar mensaje con enter
-            browser.find_element(By.CSS_SELECTOR,'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+                # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+                if i < len(parrafos) - 1:
+                    ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+            # Enviar el último párrafo
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -229,6 +260,25 @@ def buscar_base_de_datos():
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
     if BaseDatosMasiva:
         print("Base de Datos seleccionada: " + BaseDatosMasiva)
+    else:
+        salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
+        limpiarcmd()
+        while True:
+            try:
+                while salir!="y" and salir!="n":
+                    salir=str(input("Opcion Invalida\n¿Desea salir? y/n\n"))
+                    limpiarcmd()
+            except:
+                salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
+            else:
+                if salir=="y":
+                    break
+                else:
+                    buscar_base_de_datos()
+                    
+                
+                
+        buscar_base_de_datos()
 
 def validarMensaje():
     mensaje = str(input("El mensaje es correcto? y/n "))
@@ -246,7 +296,9 @@ def validarMensaje():
     
 def introducir_mensaje():
     global MensajeMasivo
-    MensajeMasivo = str(input("Introduzca el Mensaje:\n"))
+    MensajeMasivo = eg.codebox(msg='Entrada de fuente',
+                    title='Control: codebox',
+                    )
     if MensajeMasivo:
         print("Mensaje escrito: " + MensajeMasivo)
         mensaje=validarMensaje()
@@ -266,11 +318,11 @@ def validarImagen():
                 return True
             else:
                 return False
-                
+                n
                 
 def Menu():
    
-    Bienvenido(5)
+    Bienvenido(1)
     buscar_base_de_datos()
     time.sleep(1)
     limpiarcmd()
