@@ -1,4 +1,4 @@
-import pickle
+import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -81,28 +81,26 @@ print("El QR se ha escaneado.")
 
 def crearCookies():
     print("Guardando cookies...")
-    time.sleep(5)
+    # Guarda las cookies en formato JSON
+    time.sleep(10)
     cookies = browser.get_cookies()
-    pickle.dump(cookies, open("cookies.pkl", "wb"))
+    with open('cookies.json', 'w') as f:
+        json.dump(cookies, f)
         
 
 
-# Carga las cookies si existen
-try:
-    
-    cookies = pickle.load(open("cookies.pkl", "rb"))
-
-    for cookie in cookies:
-        cookie['domain'] = ".messages.google.com"
-        
-        try:
-            browser.add_cookie(cookie)
-        except Exception as e:
-            print(e)
-
-    browser.get('https://messages.google.com/web/conversations/new')
-except:
-    pass
+# Carga las cookies
+    try:
+        with open('cookies.json', 'r') as f:
+            cookies = json.load(f)
+            for cookie in cookies:
+                # Define el dominio de acuerdo a la cookie
+                domain = cookie.get('domain', '.google.com')
+                browser.get('https://' + domain)
+                browser.add_cookie(cookie)
+        browser.get('https://messages.google.com/web/conversations/new')
+    except Exception as e:
+        print("Error al cargar las cookies:", str(e))
 
 cont = 0 
 for i in range(1, 3):
@@ -158,20 +156,19 @@ chrome_service.stop()
 if cont == 2:
     print("Reabriendo el navegador y cargando cookies...")
     browser = webdriver.Chrome(service=chrome_service, options=options)
-    browser.get('https://messages.google.com/web/conversations')
+    
 
-    # Carga las cookies
-    cookies = pickle.load(open("cookies.pkl", "rb"))
-
-    for cookie in cookies:
-        cookie['domain'] = "messages.google.com"
-        
-        try:
-            browser.add_cookie(cookie)
-        except Exception as e:
-            print(e)
-
-    browser.get('https://messages.google.com/web/conversations/new')
+    try:
+        with open('cookies.json', 'r') as f:
+            cookies = json.load(f)
+            for cookie in cookies:
+                # Define el dominio de acuerdo a la cookie
+                domain = cookie.get('domain', '.google.com')
+                browser.get('https://' + domain)
+                browser.add_cookie(cookie)
+        browser.get('https://messages.google.com/web/conversations/new')
+    except Exception as e:
+        print("Error al cargar las cookies:", str(e))
     time.sleep(10)
 
     
