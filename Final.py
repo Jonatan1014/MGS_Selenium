@@ -15,7 +15,7 @@ import easygui as eg
 import os
 import time
 import json
-
+progreso = {}
 os.system('color 2' if os.name == 'nt' else 'clear')
 
 def crearCarpetaGoogle():
@@ -116,39 +116,39 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
 
-    # Espera a que el elemento del QR esté presente
-    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
-
-    # Espera a que la imagen del QR cargue
-    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-
-    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-    print("El QR se ha escaneado.")
-
-    # Espera a que aparezca el botón
-    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
-
-    # Buscar el elemento de nuevo mensaje
-    WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
-    cont = 0
-    # Cargar el progreso actual desde un archivo o inicializarlo
-    progreso = {"fila_actual": 1, "mensaje_actual": 0}
     try:
         with open('progreso.json', 'r') as file:
             progreso = json.load(file)
     except FileNotFoundError:
-        pass
+        progreso = {"fila_actual": 1, "mensaje_actual": MensajeMasivo}
+        # Espera a que el elemento del QR esté presente
+        qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+
+        # Espera a que la imagen del QR cargue
+        WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+
+        # Boton de recordar inicio de secion
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
+
+        # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
+        WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
+
+        # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
+        # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
+        print("El QR se ha escaneado.")
+
+        # Espera a que aparezca el botón
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
+
+        # Buscar el elemento de nuevo mensaje
+        WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
+        cont = 0
+        # Cargar el progreso actual desde un archivo o inicializarlo
+    
+    
+        
     for fila_num, fila in enumerate(hoja.iter_rows(min_row=progreso["fila_actual"], values_only=True), start=progreso["fila_actual"]):
         Celular = " - ".join(map(str, fila))
-        if all(cell is None for cell in fila):
-            print("Se ha llegado al final del archivo. Proceso detenido.")
-            break
-        
-            
         # hacer click en el boton de nuevo mensaje
         browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
 
@@ -181,25 +181,26 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
         cont=cont+1
         print(cont)
         # Si se han enviado 4 mensajes, guarda el progreso y reinicia
-        if cont == 2:
+        if cont >1:
             # Guarda el progreso actual en un archivo
-            progreso["fila_actual"] = fila_num + 1
-            progreso["mensaje_actual"] = MensajeMasivo + 1
-            progreso["cont"] = cont
+            progreso["fila_actual"] = fila_num +1
+            progreso["mensaje_actual"] = MensajeMasivo
 
             with open('progreso.json', 'w') as file:
                 json.dump(progreso, file)
+
+            # Cierra el navegador y detiene el servicio
+            browser.quit()
+            chrome_service.stop()
+            print("Envio completado")
+            libro.close()
+            break
+    programSinImagenes(archivo_excel,rutaCarpeta)
                 
         
 
     
-    # Cierra el navegador y detiene el servicio
-    time.sleep(3)
-    browser.quit()
-    chrome_service.stop()
-    print("Envio completado")
-        
-    libro.close()
+   
 
 
 
@@ -290,7 +291,7 @@ def Menu():
         try:
             if BaseDatosMasiva and MensajeMasivo:
                 rutaCarpeta=crearCarpetaGoogle()
-                program(BaseDatosMasiva,rutaCarpeta)
+                programSinImagenes(BaseDatosMasiva,rutaCarpeta)
         except:
             print("Complete todos los campos antes de comenzar.")
     else:

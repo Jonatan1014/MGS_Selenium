@@ -1,3 +1,7 @@
+import openpyxl
+import os
+import tkinter as tk
+from tkinter import filedialog
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -6,8 +10,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
-
+from datetime import datetime
+import easygui as eg
+import os
 import time
+import json
+
 # Configura el servicio de ChromeDriver
 chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
 chrome_service = ChromeService(chrome_driver_path)
@@ -19,6 +27,8 @@ options = webdriver.ChromeOptions()
 # Configura opciones adicionales si es necesario
 # Deshabilita las notificaciones
 options.add_argument("--disable-notifications")
+options.add_argument("--remote-debugging-port=9222")
+options.add_argument(r'user-data-dir=C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\Google')
 
 # Inicializa el WebDriver utilizando el servicio y las opciones
 browser = webdriver.Chrome(service=chrome_service, options=options)
@@ -41,9 +51,11 @@ WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
 # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
 # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
 print("El QR se ha escaneado.")
-        
-for i in range(0,300):
-    
+
+libro = openpyxl.load_workbook(r"C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\pruebas.xlsx")
+hoja = libro["Hoja1"]
+cont=0
+for fila in hoja.iter_rows(min_row=1, values_only=True):
     try:
         
         # Espera a que aparezca el botón
@@ -75,7 +87,17 @@ for i in range(0,300):
         
         # Enviar imagen con Enter
         browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-        
+        cont+=1
+        print(cont)
+        if cont>249:
+            progreso = {}
+            # Guarda el progreso actual en un archivo
+            progreso["fila_actual"] = fila + 1
+            progreso["mensaje_actual"] = MensajeMasivo
+
+            with open('progreso.json', 'w') as file:
+                json.dump(progreso, file)
+
         #time.sleep(6)
     except StaleElementReferenceException as e:
         print("Error: Elemento de página obsoleto. ", str(e))
