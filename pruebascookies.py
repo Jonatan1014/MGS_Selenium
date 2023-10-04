@@ -10,7 +10,7 @@ class Save(unittest.TestCase):
     def setUp(self):
         options = Options()
         options.add_argument("--remote-debugging-port=9222")
-        options.add_argument(r'user-data-dir=./google')
+        options.add_argument(r'user-data-dir=C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\Google')
 
         self.driver = webdriver.Chrome(options=options)
         driver = self.driver
@@ -25,7 +25,8 @@ class Save(unittest.TestCase):
             time.sleep(20)
         except:
             print("bye")
-            
+
+
     def tearDown(self):
         self.driver.quit()
 
