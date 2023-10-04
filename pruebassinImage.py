@@ -5,7 +5,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
-from selenium.webdriver.common.action_chains import ActionChains
+
 
 import time
 # Configura el servicio de ChromeDriver
@@ -41,7 +41,7 @@ WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
 # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
 # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
 print("El QR se ha escaneado.")
-        
+cont=0 
 for i in range(0,300):
     
     try:
@@ -63,30 +63,26 @@ for i in range(0,300):
         
         # Espera a que la casilla de texto esté presente y sea visible
         texto_area = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
-
+       
         # Escribir mensaje 
-        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys("Mensaje")
+        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys("M")
 
         # Enviar mensaje con Enter
         browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-
-        # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
-        ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
         
-        # Enviar imagen con Enter
-        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-        
-        #time.sleep(6)
+        cont+=1
+        print(cont)
+            
     except StaleElementReferenceException as e:
         print("Error: Elemento de página obsoleto. ", str(e))
     except ElementClickInterceptedException as e:
         print("Error: Intercepción de clic en el elemento. ", str(e))
     except Exception as e:
         print("Ocurrió un error inesperado: ", str(e))
+    except:
+        print("error")
 
-
-    finally:
-        time.sleep(30)
-        # Cierra el navegador y detiene el servicio
-        browser.quit()
-        chrome_service.stop()
+time.sleep(30)
+# Cierra el navegador y detiene el servicio
+browser.quit()
+chrome_service.stop()

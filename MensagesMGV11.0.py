@@ -194,7 +194,7 @@ def programSinImagenes(archivo_excel, mensaje):
 
     # Espera a que la imagen del QR cargue
     WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-
+    
     # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
     WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
 
