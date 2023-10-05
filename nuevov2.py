@@ -16,7 +16,7 @@ import os
 import time
 import json
 
-
+global cont
 os.system('color 1' if os.name == 'nt' else 'clear')
 
 def crearCarpetaGoogle():
@@ -353,7 +353,11 @@ def program(archivo_excel, rutaCarpeta):
     if fin_del_archivo:
         print("Se ha llegado al final del archivo. Proceso detenido.")
         return
+
+
+ScanQR=[]
     
+
 # Programa sin envio de imagenes
 def programSinImagenes(archivo_excel,rutaCarpeta):            
 
@@ -376,19 +380,20 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
 
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
+    if len(ScanQR)==0:
+        
+        # Espera a que el elemento del QR esté presente
+        qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
 
-    # Espera a que el elemento del QR esté presente
-    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+        # Espera a que la imagen del QR cargue
+        WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
 
-    # Espera a que la imagen del QR cargue
-    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+        # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
+        WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
 
-    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-    print("El QR se ha escaneado.")
+        # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
+        # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
+        print("El QR se ha escaneado.")
 
     # Espera a que aparezca el botón
     WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
@@ -396,7 +401,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     # Buscar el elemento de nuevo mensaje
     WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
-    for fila in hoja.iter_rows(min_row=1, values_only=True):
+    for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
             
@@ -431,6 +436,8 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
             cont=cont+1
             print(cont)
+            if cont>1: 
+                break
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -438,14 +445,14 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             print("Error: Intercepción de clic en el elemento. ", str(e))
         except Exception as e:
             print("Ocurrió un error inesperado: ", str(e))
-
+    
+    
     
     # Cierra el navegador y detiene el servicio
     time.sleep(3)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
-        
     libro.close()
 
 def buscar_base_de_datos():
@@ -534,7 +541,9 @@ def Menu():
         try:
             if BaseDatosMasiva and MensajeMasivo:
                 rutaCarpeta=crearCarpetaGoogle()
+                
                 program(BaseDatosMasiva,rutaCarpeta)
+                ScanQR.append(1)
         except:
             print("Complete todos los campos antes de comenzar.")
     else:
@@ -545,7 +554,9 @@ def Menu():
         try:
             if BaseDatosMasiva and MensajeMasivo:
                 rutaCarpeta=crearCarpetaGoogle()
-                programSinImagenes(BaseDatosMasiva, rutaCarpeta)
+                while True:
+                    programSinImagenes(BaseDatosMasiva, rutaCarpeta)
+                
         except:
             print("Complete todos los campos antes de comenzar.")
 Menu()
