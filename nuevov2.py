@@ -14,6 +14,7 @@ from datetime import datetime
 import easygui as eg
 import os
 import time
+import math
 
 global cont
 ScanQR=[]
@@ -197,6 +198,24 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             cont=cont+1
             print(cont)
             if cont>249:
+                # Espera hasta que el elemento "loader" no sea visible
+                WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+                
+                # hacer click en el boton de nuevo mensaje
+                # Espera hasta que el elemento sea clickeable
+                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label'))).click()
+                # hacer click en la entrada de nuevo mensaje
+                #browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
+
+                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+                
+
+                # agregar numero de telefono
+                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+
+                # seleccionar el numero ingresado
+                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
+       
                 UltimoN.append(sumN+1)
                 break
                     
@@ -211,6 +230,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     
     # Cierra el navegador y detiene el servicio
     ScanQR.append(1)
+    time.sleep(60)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
@@ -311,7 +331,7 @@ def program(archivo_excel,rutaCarpeta):
             
             cont=cont+1
             print(cont)
-            if cont>250:
+            if cont>249:
                 UltimoN.append(sumN+1)
                 break
                     
@@ -328,6 +348,7 @@ def program(archivo_excel,rutaCarpeta):
     ScanQR.append(1)
     browser.quit()
     chrome_service.stop()
+    time.sleep(30)
     print("Envio completado")
     libro.close()
 
@@ -339,6 +360,7 @@ def buscar_base_de_datos():
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
     if BaseDatosMasiva:
         print("Base de Datos seleccionada: " + BaseDatosMasiva)
+        return True
     else:
         salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
         limpiarcmd()
@@ -355,10 +377,6 @@ def buscar_base_de_datos():
                 else:
                     buscar_base_de_datos()
                     
-                
-                
-        buscar_base_de_datos()
-
 def validarMensaje():
     mensaje = str(input("El mensaje es correcto? y/n "))
     while True:
@@ -398,47 +416,50 @@ def validarImagen():
                 
 def Menu():
     Bienvenido(1)
-    buscar_base_de_datos()
-    time.sleep(1)
-    limpiarcmd()
-    interfaz()
-    image=validarImagen()
-    time.sleep(1)
-    limpiarcmd()
-    interfaz()
-    if image:
-        introducir_mensaje()
+    validarBD=buscar_base_de_datos()
+    if validarBD:
         time.sleep(1)
         limpiarcmd()
         interfaz()
-        try:
+        image=validarImagen()
+        time.sleep(1)
+        limpiarcmd()
+        interfaz()
+        if image:
+            introducir_mensaje()
+            time.sleep(1)
+            limpiarcmd()
+            interfaz()
+            try:
+                if BaseDatosMasiva and MensajeMasivo:
+                    rutaCarpeta=crearCarpetaGoogle()
+                    
+                    fin = contar_filas("Hoja1", BaseDatosMasiva)
+                    intervalos= fin/250
+                    for i in range(0,int(math.ceil(intervalos))) :
+                        program(BaseDatosMasiva, rutaCarpeta)
+                        
+                    print("Trabajo terminado corrrectamente")
+                    
+            except:
+                print("Complete todos los campos antes de comenzar.")
+        else:
+            introducir_mensaje()
+            time.sleep(1)
+            limpiarcmd()
+            interfaz()
             if BaseDatosMasiva and MensajeMasivo:
                 rutaCarpeta=crearCarpetaGoogle()
                 
                 fin = contar_filas("Hoja1", BaseDatosMasiva)
                 intervalos= fin/250
-                for i in range(0,int(round(intervalos))) :
-                    program(BaseDatosMasiva, rutaCarpeta)
+                for i in range(0,int(math.ceil(intervalos))) :
+                    programSinImagenes(BaseDatosMasiva, rutaCarpeta)
                     
                 print("Trabajo terminado corrrectamente")
-                
-        except:
-            print("Complete todos los campos antes de comenzar.")
+            else:
+        
+                print("Complete todos los campos antes de comenzar.")
     else:
-        introducir_mensaje()
-        time.sleep(1)
-        limpiarcmd()
-        interfaz()
-        if BaseDatosMasiva and MensajeMasivo:
-            rutaCarpeta=crearCarpetaGoogle()
-            
-            fin = contar_filas("Hoja1", BaseDatosMasiva)
-            intervalos= fin/250
-            for i in range(0,int(round(intervalos))) :
-                programSinImagenes(BaseDatosMasiva, rutaCarpeta)
-                
-            print("Trabajo terminado corrrectamente")
-        else:
-    
-            print("Complete todos los campos antes de comenzar.")
+        print("Adios!")
 Menu()
