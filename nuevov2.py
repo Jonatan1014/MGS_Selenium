@@ -14,10 +14,12 @@ from datetime import datetime
 import easygui as eg
 import os
 import time
-import json
 
 global cont
-os.system('color 1' if os.name == 'nt' else 'clear')
+ScanQR=[]
+UltimoN=[1]
+extension1 = ["*.xlsx"]
+os.system('color 2' if os.name == 'nt' else 'clear')
 
 def crearCarpetaGoogle():
     # Obtiene la fecha y hora actual
@@ -38,10 +40,10 @@ def crearCarpetaGoogle():
     print("Carpeta creada con exito!")
     time.sleep(3)
     return (folder_path)
-    
+
 def limpiarcmd():
     os.system('cls' if os.name == 'nt' else 'clear')
- 
+
 def interfaz():
     hola = """
          __  __                                  _           _____   __  __    _____ 
@@ -55,7 +57,7 @@ def interfaz():
         by: JSB
         """
     print(hola)
-    
+
 def Bienvenido(duration):
     limpiarcmd()
     chars = ['|', '/', '-', '\\']
@@ -92,267 +94,6 @@ def Bienvenido(duration):
     
     print('\rIniciado Con Exito!   ')
     time.sleep(2)
-    
-extension1 = ["*.xlsx"]
-
-def envioMensajes(archivo_excel,rutaCarpeta):
-    libro = openpyxl.load_workbook(archivo_excel)
-    hoja = libro["Hoja1"]
-    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
-    chrome_service = ChromeService(chrome_driver_path)
-    chrome_service.start()
-    
-    # Configura las opciones del navegador
-    options = webdriver.ChromeOptions()
-    # Configura opciones adicionales si es necesario
-    # Deshabilita las notificaciones
-    options.add_argument("--disable-notifications")
-    options.add_argument("--remote-debugging-port=9222")
-    options.add_argument('user-data-dir='+rutaCarpeta)
-
-
-    # Inicializa el WebDriver utilizando el servicio y las opciones
-    browser = webdriver.Chrome(service=chrome_service, options=options)
-
-    # Abre la página web
-    browser.get('https://messages.google.com/web/conversations')
-
-    # Espera a que el elemento del QR esté presente
-    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
-
-    # Espera a que la imagen del QR cargue
-    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-
-    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-    print("El QR se ha escaneado.")
-
-    # Espera a que aparezca el botón
-    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
-
-    # Buscar el elemento de nuevo mensaje
-    WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
-    # Cargar el progreso actual desde un archivo o inicializarlo
-    progreso = {"fila_actual": 1, "mensaje_actual": 0}
-    try:
-        with open('progreso.json', 'r') as file:
-            progreso = json.load(file)
-    except FileNotFoundError:
-        pass
-    cont = 0
-    for fila_num, fila in enumerate(hoja.iter_rows(min_row=progreso["fila_actual"], values_only=True), start=progreso["fila_actual"]):
-        # Controlar si hemos llegado al final del archivo
-        Celular = " - ".join(map(str, fila))
-        if all(cell is None for cell in fila):
-            fin_del_archivo = True
-            break
-        for mensaje_num, parrafo in enumerate(MensajeMasivo.split('\n')[progreso["mensaje_actual"]:], start=progreso["mensaje_actual"]):
-
-            try:
-            
-                # hacer click en el boton de nuevo mensaje
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
-
-                # hacer click en la entrada de nuevo mensaje
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
-
-                # agregar numero de telefono
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
-
-                # seleccionar el numero ingresado
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
-                
-                # Espera a que la casilla de texto esté presente y sea visible
-                WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
-
-                # Dividir el mensaje en párrafos
-                parrafos = MensajeMasivo.split('\n')
-
-                # Escribir cada párrafo en el área de texto
-                for i, parrafo in enumerate(parrafos):
-                    # Escribir el párrafo actual
-                    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
-
-                    # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
-                    if i < len(parrafos) - 1:
-                        ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
-
-                # Enviar el último párrafo
-                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-                
-                # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
-                ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-                
-                # Enviar imagen con Enter
-                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-            except StaleElementReferenceException as e:
-                print("Error: Elemento de página obsoleto. ", str(e))
-            except ElementClickInterceptedException as e:
-                print("Error: Intercepción de clic en el elemento. ", str(e))
-            except Exception as e:
-                print("Ocurrió un error inesperado: ", str(e))
-            
-            cont += 1
-            print("Mensaje enviado. Total de mensajes enviados:", cont)
-
-            # Si se han enviado 4 mensajes, guarda el progreso y reinicia
-            if cont == 2:
-                # Guarda el progreso actual en un archivo
-                with open('progreso.json', 'w') as file:
-                    json.dump({"fila_actual": fila_num + 1, "mensaje_actual": mensaje_num + 1}, file)
-
-                # Cierra el navegador y detiene el servicio
-                time.sleep(3)
-                browser.quit()
-                chrome_service.stop()
-                print("Envio completado")
-
-                # Resetea el contador
-                cont = 0
-    # Elimina el archivo de progreso al finalizar el envío
-    try:
-        os.remove('progreso.json')
-    except FileNotFoundError:
-        pass
-
-    libro.close()
-    # Si llegamos al final del archivo, detener el proceso
-    if fin_del_archivo:
-        print("Se ha llegado al final del archivo. Proceso detenido.")
-        return
-
-
-# Programa con envio de imagenes
-def program(archivo_excel, rutaCarpeta):            
-    libro = openpyxl.load_workbook(archivo_excel)
-    hoja = libro["Hoja1"]
-    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
-    chrome_service = ChromeService(chrome_driver_path)
-    chrome_service.start()
-    
-    # Configura las opciones del navegador
-    options = webdriver.ChromeOptions()
-    # Configura opciones adicionales si es necesario
-    # Deshabilita las notificaciones
-    options.add_argument("--disable-notifications")
-    options.add_argument("--remote-debugging-port=9222")
-    options.add_argument('user-data-dir='+rutaCarpeta)
-
-    # Inicializa el WebDriver utilizando el servicio y las opciones
-    browser = webdriver.Chrome(service=chrome_service, options=options)
-
-    # Abre la página web
-    browser.get('https://messages.google.com/web/conversations')
-
-    # Espera a que el elemento del QR esté presente
-    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
-
-    # Espera a que la imagen del QR cargue
-    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-
-    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-    print("El QR se ha escaneado.")
-
-    # Espera a que aparezca el botón
-    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
-
-    # Buscar el elemento de nuevo mensaje
-    WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
-    # Cargar el progreso actual desde un archivo o inicializarlo
-    progreso = {"fila_actual": 1, "mensaje_actual": 0}
-    try:
-        with open('progreso.json', 'r') as file:
-            progreso = json.load(file)
-    except FileNotFoundError:
-        pass
-    
-    cont = 0
-    for fila_num, fila in enumerate(hoja.iter_rows(min_row=progreso["fila_actual"], values_only=True), start=progreso["fila_actual"]):
-        # Controlar si hemos llegado al final del archivo
-        Celular = " - ".join(map(str, fila))
-        if all(cell is None for cell in fila):
-            fin_del_archivo = True
-            break
-        for mensaje_num, parrafo in enumerate(MensajeMasivo.split('\n')[progreso["mensaje_actual"]:], start=progreso["mensaje_actual"]):
-
-            try:
-            
-                # hacer click en el boton de nuevo mensaje
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
-
-                # hacer click en la entrada de nuevo mensaje
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
-
-                # agregar numero de telefono
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
-
-                # seleccionar el numero ingresado
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
-                
-                # Espera a que la casilla de texto esté presente y sea visible
-                WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
-
-                # Dividir el mensaje en párrafos
-                parrafos = MensajeMasivo.split('\n')
-
-                # Escribir cada párrafo en el área de texto
-                for i, parrafo in enumerate(parrafos):
-                    # Escribir el párrafo actual
-                    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
-
-                    # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
-                    if i < len(parrafos) - 1:
-                        ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
-
-                # Enviar el último párrafo
-                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-                
-                # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
-                ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
-                
-                # Enviar imagen con Enter
-                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-            except StaleElementReferenceException as e:
-                print("Error: Elemento de página obsoleto. ", str(e))
-            except ElementClickInterceptedException as e:
-                print("Error: Intercepción de clic en el elemento. ", str(e))
-            except Exception as e:
-                print("Ocurrió un error inesperado: ", str(e))
-            
-            cont += 1
-            print("Mensaje enviado. Total de mensajes enviados:", cont)
-
-            # Si se han enviado 4 mensajes, guarda el progreso y reinicia
-            if cont == 2:
-                # Guarda el progreso actual en un archivo
-                with open('progreso.json', 'w') as file:
-                    json.dump({"fila_actual": fila_num + 1, "mensaje_actual": mensaje_num + 1}, file)
-
-                # Cierra el navegador y detiene el servicio
-                time.sleep(3)
-                browser.quit()
-                chrome_service.stop()
-                print("Envio completado")
-
-                # Resetea el contador
-                cont = 0
-
-                envioMensajes(archivo_excel,rutaCarpeta)
-
-    
-
-    libro.close()
-    # Si llegamos al final del archivo, detener el proceso
-    if fin_del_archivo:
-        print("Se ha llegado al final del archivo. Proceso detenido.")
-        return
 
 def contar_filas(nombre_hoja,archivo_excel):
     # Carga el archivo de Excel
@@ -365,9 +106,6 @@ def contar_filas(nombre_hoja,archivo_excel):
     numero_filas = hoja.max_row
     
     return numero_filas
-
-ScanQR=[]
-UltimoN=[1]
 
 # Programa sin envio de imagenes
 def programSinImagenes(archivo_excel,rutaCarpeta):            
@@ -421,9 +159,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
         Celular = " - ".join(map(str, fila))
         try:
             # Espera hasta que el elemento "loader" no sea visible
-            WebDriverWait(browser, 10).until(
-                EC.invisibility_of_element_located((By.ID, 'loader'))
-            )
+            WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
             
             # hacer click en el boton de nuevo mensaje
             # Espera hasta que el elemento sea clickeable
@@ -460,9 +196,8 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             
             cont=cont+1
             print(cont)
-            if cont>1:
+            if cont>249:
                 UltimoN.append(sumN+1)
-    
                 break
                     
         except StaleElementReferenceException as e:
@@ -476,7 +211,121 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     
     # Cierra el navegador y detiene el servicio
     ScanQR.append(1)
-    time.sleep(0.5)
+    browser.quit()
+    chrome_service.stop()
+    print("Envio completado")
+    libro.close()
+
+# Programa con envio de imagenes
+def program(archivo_excel,rutaCarpeta):            
+
+    libro = openpyxl.load_workbook(archivo_excel)
+    hoja = libro["Hoja1"]
+    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+    chrome_service = ChromeService(chrome_driver_path)
+
+    chrome_service.start()
+
+    # Configura las opciones del navegador
+    options = webdriver.ChromeOptions()
+    # Configura opciones adicionales si es necesario
+    # Deshabilita las notificaciones
+    options.add_argument("--disable-notifications")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument('user-data-dir='+rutaCarpeta)
+    # Inicializa el WebDriver utilizando el servicio y las opciones
+    browser = webdriver.Chrome(service=chrome_service, options=options)
+
+    # Abre la página web
+    browser.get('https://messages.google.com/web/conversations')
+    
+    if len(ScanQR)==0:
+        
+        # Espera a que el elemento del QR esté presente
+        qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+
+        # Espera a que la imagen del QR cargue
+        WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+        
+        # Boton de recordar inicio de secion
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
+
+        # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
+        WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
+
+        # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
+        # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
+        print("El QR se ha escaneado.")
+
+        # Espera a que aparezca el botón
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
+
+        # Buscar el elemento de nuevo mensaje
+        WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
+    cont = 0
+    sumN= UltimoN[-1]+1
+    for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
+        Celular = " - ".join(map(str, fila))
+        try:
+            # Espera hasta que el elemento "loader" no sea visible
+            WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+            
+            # hacer click en el boton de nuevo mensaje
+            # Espera hasta que el elemento sea clickeable
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label'))).click()
+            # hacer click en la entrada de nuevo mensaje
+            #browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
+
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+            
+
+            # agregar numero de telefono
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+
+            # seleccionar el numero ingresado
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
+       
+            # Espera a que la casilla de texto esté presente y sea visible
+            WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+            
+            # Dividir el mensaje en párrafos
+            parrafos = MensajeMasivo.split('\n')
+
+            # Escribir cada párrafo en el área de texto
+            for i, parrafo in enumerate(parrafos):
+                # Escribir el párrafo actual
+                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+                # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+                if i < len(parrafos) - 1:
+                    ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+            # Enviar el último párrafo
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            
+            # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
+            ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+            
+            # Enviar imagen con Enter
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            
+            cont=cont+1
+            print(cont)
+            if cont>250:
+                UltimoN.append(sumN+1)
+                break
+                    
+        except StaleElementReferenceException as e:
+            print("Error: Elemento de página obsoleto. ", str(e))
+        except ElementClickInterceptedException as e:
+            print("Error: Intercepción de clic en el elemento. ", str(e))
+        except Exception as e:
+            print("Ocurrió un error inesperado: ", str(e))
+    
+    
+    
+    # Cierra el navegador y detiene el servicio
+    ScanQR.append(1)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
@@ -526,9 +375,7 @@ def validarMensaje():
     
 def introducir_mensaje():
     global MensajeMasivo
-    MensajeMasivo = eg.codebox(msg='Entrada de fuente',
-                    title='Control: codebox',
-                    )
+    MensajeMasivo = eg.codebox(msg='Entrada de fuente',title='Control: codebox')
     if MensajeMasivo:
         print("Mensaje escrito: " + MensajeMasivo)
         mensaje=validarMensaje()
@@ -568,7 +415,12 @@ def Menu():
             if BaseDatosMasiva and MensajeMasivo:
                 rutaCarpeta=crearCarpetaGoogle()
                 
-                program(BaseDatosMasiva,rutaCarpeta)
+                fin = contar_filas("Hoja1", BaseDatosMasiva)
+                intervalos= fin/250
+                for i in range(0,int(round(intervalos))) :
+                    program(BaseDatosMasiva, rutaCarpeta)
+                    
+                print("Trabajo terminado corrrectamente")
                 
         except:
             print("Complete todos los campos antes de comenzar.")
@@ -577,13 +429,12 @@ def Menu():
         time.sleep(1)
         limpiarcmd()
         interfaz()
-        
         if BaseDatosMasiva and MensajeMasivo:
             rutaCarpeta=crearCarpetaGoogle()
             
             fin = contar_filas("Hoja1", BaseDatosMasiva)
-            intervalos= fin/2
-            for i in range(0,int(intervalos)) :
+            intervalos= fin/250
+            for i in range(0,int(round(intervalos))) :
                 programSinImagenes(BaseDatosMasiva, rutaCarpeta)
                 
             print("Trabajo terminado corrrectamente")
