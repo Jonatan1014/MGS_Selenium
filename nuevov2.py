@@ -354,7 +354,20 @@ def program(archivo_excel, rutaCarpeta):
         print("Se ha llegado al final del archivo. Proceso detenido.")
         return
 
+def contar_filas(nombre_hoja,archivo_excel):
+    # Carga el archivo de Excel
+    libro = openpyxl.load_workbook(archivo_excel)
+    
+    # Accede a la hoja específica
+    hoja = libro[nombre_hoja]
+    
+    # Cuenta las filas en la hoja
+    numero_filas = hoja.max_row
+    
+    return numero_filas
+
 ScanQR=[]
+UltimoN=[1]
 
 # Programa sin envio de imagenes
 def programSinImagenes(archivo_excel,rutaCarpeta):            
@@ -403,7 +416,8 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
         # Buscar el elemento de nuevo mensaje
         WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
-    for fila in hoja.iter_rows(min_row=1, values_only=True):  
+    sumN= UltimoN[-1]+1
+    for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
             # Espera hasta que el elemento "loader" no sea visible
@@ -446,7 +460,9 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             
             cont=cont+1
             print(cont)
-            if cont>1: 
+            if cont>1:
+                UltimoN.append(sumN+1)
+    
                 break
                     
         except StaleElementReferenceException as e:
@@ -460,7 +476,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     
     # Cierra el navegador y detiene el servicio
     ScanQR.append(1)
-    time.sleep(3)
+    time.sleep(0.5)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
@@ -564,9 +580,14 @@ def Menu():
         
         if BaseDatosMasiva and MensajeMasivo:
             rutaCarpeta=crearCarpetaGoogle()
-            while True:
-                programSinImagenes(BaseDatosMasiva, rutaCarpeta)
             
+            fin = contar_filas("Hoja1", BaseDatosMasiva)
+            intervalos= fin/2
+            for i in range(0,int(intervalos)) :
+                programSinImagenes(BaseDatosMasiva, rutaCarpeta)
+                
+            print("Trabajo terminado corrrectamente")
+        else:
     
-        print("Complete todos los campos antes de comenzar.")
+            print("Complete todos los campos antes de comenzar.")
 Menu()
