@@ -354,9 +354,7 @@ def program(archivo_excel, rutaCarpeta):
         print("Se ha llegado al final del archivo. Proceso detenido.")
         return
 
-
 ScanQR=[]
-    
 
 # Programa sin envio de imagenes
 def programSinImagenes(archivo_excel,rutaCarpeta):            
@@ -380,6 +378,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
 
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
+    
     if len(ScanQR)==0:
         
         # Espera a que el elemento del QR esté presente
@@ -387,6 +386,9 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
 
         # Espera a que la imagen del QR cargue
         WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+        
+        # Boton de recordar inicio de secion
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
 
         # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
         WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
@@ -395,28 +397,35 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
         # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
         print("El QR se ha escaneado.")
 
-    # Espera a que aparezca el botón
-    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
+        # Espera a que aparezca el botón
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
 
-    # Buscar el elemento de nuevo mensaje
-    WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
+        # Buscar el elemento de nuevo mensaje
+        WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
     for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
+            # Espera hasta que el elemento "loader" no sea visible
+            WebDriverWait(browser, 10).until(
+                EC.invisibility_of_element_located((By.ID, 'loader'))
+            )
             
             # hacer click en el boton de nuevo mensaje
-            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label').click()
-
+            # Espera hasta que el elemento sea clickeable
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label'))).click()
             # hacer click en la entrada de nuevo mensaje
-            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
+            #browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
+
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+            
 
             # agregar numero de telefono
             browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
 
             # seleccionar el numero ingresado
             browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
-            
+       
             # Espera a que la casilla de texto esté presente y sea visible
             WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
             
@@ -434,6 +443,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
 
             # Enviar el último párrafo
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            
             cont=cont+1
             print(cont)
             if cont>1: 
@@ -449,6 +459,7 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     
     
     # Cierra el navegador y detiene el servicio
+    ScanQR.append(1)
     time.sleep(3)
     browser.quit()
     chrome_service.stop()
@@ -521,7 +532,6 @@ def validarImagen():
                 return True
             else:
                 return False
-                n
                 
 def Menu():
     Bienvenido(1)
@@ -543,7 +553,7 @@ def Menu():
                 rutaCarpeta=crearCarpetaGoogle()
                 
                 program(BaseDatosMasiva,rutaCarpeta)
-                ScanQR.append(1)
+                
         except:
             print("Complete todos los campos antes de comenzar.")
     else:
@@ -551,12 +561,12 @@ def Menu():
         time.sleep(1)
         limpiarcmd()
         interfaz()
-        try:
-            if BaseDatosMasiva and MensajeMasivo:
-                rutaCarpeta=crearCarpetaGoogle()
-                while True:
-                    programSinImagenes(BaseDatosMasiva, rutaCarpeta)
-                
-        except:
-            print("Complete todos los campos antes de comenzar.")
+        
+        if BaseDatosMasiva and MensajeMasivo:
+            rutaCarpeta=crearCarpetaGoogle()
+            while True:
+                programSinImagenes(BaseDatosMasiva, rutaCarpeta)
+            
+    
+        print("Complete todos los campos antes de comenzar.")
 Menu()
