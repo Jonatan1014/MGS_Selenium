@@ -48,7 +48,7 @@ def registrarQR(numeroCarpeta):
     os.makedirs(folder_path)
 
     print("Carpeta: "+str(folder_name)+" creada con exito!\nComenzando Registro de QR")
-    time.sleep(2)
+    time.sleep(1)
     chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
     chrome_service = ChromeService(chrome_driver_path)
 
@@ -82,7 +82,7 @@ def registrarQR(numeroCarpeta):
     # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
     # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
     print("El QR se ha escaneado.")
-    time.sleep(5)
+    time.sleep(3)
     browser.quit()
     chrome_service.stop()
     
@@ -238,8 +238,6 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
                 break
             
     
-    
-    
     # Cierra el navegador y detiene el servicio
     time.sleep(2)
     ScanQR.append(1)
@@ -273,6 +271,7 @@ def program(archivo_excel,rutaCarpeta):
     
     cont = 0
     sumN= UltimoN[-1]+1
+    error = 0
     for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
@@ -320,7 +319,7 @@ def program(archivo_excel,rutaCarpeta):
             
             cont=cont+1
             print(cont)
-            if cont>2:
+            if cont>249:
                 UltimoN.append(sumN+1)
                 break
                     
@@ -330,6 +329,10 @@ def program(archivo_excel,rutaCarpeta):
             print("Error: Intercepción de clic en el elemento. ", str(e))
         except Exception as e:
             print("Ocurrió un error inesperado: ", str(e))
+            error+=1
+            if error>2:
+                UltimoN.append(sumN-3)
+                break
     
     
     
@@ -421,20 +424,21 @@ def Menu():
             interfaz()
             try:
                 if BaseDatosMasiva and MensajeMasivo:
-                    
-                    for numeroCarpeta in range(1,2+1):
-                        rutaCarpeta=registrarQR(numeroCarpeta)
-                        rutaCarpetaV[i]=rutaCarpeta
-                        
+                    numeroQR=int(input("Introduzca la cantidad de QR"))
+                    rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+                    for numeroCarpeta in range(1,numeroQR+1):
+                            rutaCarpeta=registrarQR(numeroCarpeta)
+                            rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+                            
                     fin = contar_filas("Hoja1", BaseDatosMasiva)
                     intervalos= fin/250
-                    numero =0
                     
+                    numero =0
                     for i in range(0,int(math.ceil(intervalos))) :
                         numero = i % 2 + 1
-                        program(BaseDatosMasiva,rutaCarpetaV[numero])
-                        
-                        
+                        programSinImagenes(BaseDatosMasiva,rutaCarpetaV[numero])
+
+                    
                     print("Trabajo terminado corrrectamente")
                     
             except:
@@ -445,9 +449,9 @@ def Menu():
             limpiarcmd()
             interfaz()
             if BaseDatosMasiva and MensajeMasivo:
-                
-                rutaCarpetaV = [""] * (2 + 1)  # Inicializa la lista con elementos vacíos
-                for numeroCarpeta in range(1,2+1):
+                numeroQR=int(input("Introduzca la cantidad de QR"))
+                rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+                for numeroCarpeta in range(1,numeroQR+1):
                         rutaCarpeta=registrarQR(numeroCarpeta)
                         rutaCarpetaV[numeroCarpeta]=rutaCarpeta
                         
