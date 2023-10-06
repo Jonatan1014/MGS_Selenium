@@ -195,30 +195,27 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
 
             # Enviar el último párrafo
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+            # Espera a que aparezca el menú de conversación y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'mws-conversation-list-item-menu button[aria-label="Menú de conversación"]'))
+            )
+            element.click()
             
+            # Espera a que aparezca el botón de eliminar y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-conversation-delete] span.mat-mdc-menu-item-text'))
+            )
+            element.click()
+            
+            # Espera a que aparezca el botón de confirmar eliminar y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-action-button-confirm].gmat-mdc-button span.mdc-button__label'))
+            )
+            element.click()
             cont=cont+1
             print(cont)
-            if cont>249:
-                # Espera hasta que el elemento "loader" no sea visible
-                WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
-                
-                # hacer click en el boton de nuevo mensaje
-                # Espera hasta que el elemento sea clickeable
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label'))).click()
-                # hacer click en la entrada de nuevo mensaje
-                #browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
-
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
-                
-
-                # agregar numero de telefono
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
-
-                # seleccionar el numero ingresado
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
-       
-                UltimoN.append(sumN+1)
-                break
+            
+            
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -285,6 +282,7 @@ def program(archivo_excel,rutaCarpeta):
         WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
     sumN= UltimoN[-1]+1
+    time.sleep(30)
     for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
@@ -329,12 +327,27 @@ def program(archivo_excel,rutaCarpeta):
             
             # Enviar imagen con Enter
             browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-            
             cont=cont+1
             print(cont)
-            if cont>249:
-                UltimoN.append(sumN+1)
-                break
+            
+
+            # Espera a que aparezca el menú de conversación y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'mws-conversation-list-item-menu button[aria-label="Menú de conversación"]'))
+            )
+            element.click()
+            
+            # Espera a que aparezca el botón de eliminar y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-conversation-delete] span.mat-mdc-menu-item-text'))
+            )
+            element.click()
+            
+            # Espera a que aparezca el botón de confirmar eliminar y sea interactivo antes de hacer clic
+            element = WebDriverWait(browser, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-action-button-confirm].gmat-mdc-button span.mdc-button__label'))
+            )
+            element.click()
                     
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -436,7 +449,7 @@ def Menu():
                     rutaCarpeta=crearCarpetaGoogle()
                     
                     fin = contar_filas("Hoja1", BaseDatosMasiva)
-                    intervalos= fin/250
+                    intervalos= fin/249
                     for i in range(0,int(math.ceil(intervalos))) :
                         program(BaseDatosMasiva, rutaCarpeta)
                         
@@ -453,7 +466,7 @@ def Menu():
                 rutaCarpeta=crearCarpetaGoogle()
                 
                 fin = contar_filas("Hoja1", BaseDatosMasiva)
-                intervalos= fin/250
+                intervalos= fin/249
                 for i in range(0,int(math.ceil(intervalos))) :
                     programSinImagenes(BaseDatosMasiva, rutaCarpeta)
                     
