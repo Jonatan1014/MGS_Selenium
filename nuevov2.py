@@ -10,7 +10,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
-from datetime import datetime
 import easygui as eg
 import os
 import time
@@ -19,15 +18,13 @@ import math
 global cont
 ScanQR=[]
 UltimoN=[1]
+rutaCarpetaV=[]
 extension1 = ["*.xlsx"]
 os.system('color 2' if os.name == 'nt' else 'clear')
 
-def crearCarpetaGoogle():
-    # Obtiene la fecha y hora actual
-    now = datetime.now()
-
-    # Formatea la fecha y hora en el formato que desees para la carpeta (año-mes-día_hora-minuto-segundo)
-    folder_name = now.strftime("Chrome_%d-%m-%Y_%H-%M-%S")
+def registrarQR(numeroCarpeta):
+    
+    folder_name = "Google "+str(numeroCarpeta)
 
     # Obtiene la ruta absoluta de la carpeta actual donde está el programa
     current_directory = os.path.dirname(os.path.abspath(__file__))
@@ -35,11 +32,61 @@ def crearCarpetaGoogle():
     # Ruta completa para la carpeta dentro de la carpeta actual
     folder_path = os.path.join(current_directory, folder_name)
 
+    # Verificar si la carpeta ya existe
+    if os.path.exists(folder_path):
+        for root, dirs, files in os.walk(folder_path, topdown=False):
+            for file in files:
+                file_path = os.path.join(root, file)
+                os.remove(file_path)
+            for dir in dirs:
+                dir_path = os.path.join(root, dir)
+                os.rmdir(dir_path)
+
+        os.rmdir(folder_path)
+        
     # Crea la carpeta
     os.makedirs(folder_path)
 
-    print("Carpeta creada con exito!")
-    time.sleep(3)
+    print("Carpeta: "+str(folder_name)+" creada con exito!\nComenzando Registro de QR")
+    time.sleep(2)
+    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+    chrome_service = ChromeService(chrome_driver_path)
+
+    chrome_service.start()
+
+    # Configura las opciones del navegador
+    options = webdriver.ChromeOptions()
+    # Configura opciones adicionales si es necesario
+    # Deshabilita las notificaciones
+    options.add_argument("--disable-notifications")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument('user-data-dir='+folder_path)
+    # Inicializa el WebDriver utilizando el servicio y las opciones
+    browser = webdriver.Chrome(service=chrome_service, options=options)
+
+    # Abre la página web
+    browser.get('https://messages.google.com/web/conversations')
+    
+    # Espera a que el elemento del QR esté presente
+    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+
+    # Espera a que la imagen del QR cargue
+    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
+    
+    # Boton de recordar inicio de secion
+    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
+
+    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
+    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
+
+    # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
+    # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
+    print("El QR se ha escaneado.")
+    time.sleep(5)
+    browser.quit()
+    chrome_service.stop()
+    
+        
     return (folder_path)
 
 def limpiarcmd():
@@ -124,39 +171,16 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
     # Deshabilita las notificaciones
     options.add_argument("--disable-notifications")
     options.add_argument("--remote-debugging-port=9222")
-    options.add_argument('user-data-dir='+rutaCarpeta)
+    options.add_argument(r'user-data-dir='+rutaCarpeta)
     # Inicializa el WebDriver utilizando el servicio y las opciones
     browser = webdriver.Chrome(service=chrome_service, options=options)
 
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
     
-    if len(ScanQR)==0:
-        
-        # Espera a que el elemento del QR esté presente
-        qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
-
-        # Espera a que la imagen del QR cargue
-        WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-        
-        # Boton de recordar inicio de secion
-        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
-
-        # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-        WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-        # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-        # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-        print("El QR se ha escaneado.")
-
-        # Espera a que aparezca el botón
-        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
-
-        # Buscar el elemento de nuevo mensaje
-        WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
     sumN= UltimoN[-1]+1
-    time.sleep(30)
+    error = 0
     for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
         Celular = " - ".join(map(str, fila))
         try:
@@ -199,24 +223,6 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             cont=cont+1
             print(cont)
             if cont>249:
-                # Espera hasta que el elemento "loader" no sea visible
-                WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
-                
-                # hacer click en el boton de nuevo mensaje
-                # Espera hasta que el elemento sea clickeable
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label'))).click()
-                # hacer click en la entrada de nuevo mensaje
-                #browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').click()
-
-                WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
-                
-
-                # agregar numero de telefono
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
-
-                # seleccionar el numero ingresado
-                browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button').click()
-       
                 UltimoN.append(sumN+1)
                 break
                     
@@ -226,12 +232,17 @@ def programSinImagenes(archivo_excel,rutaCarpeta):
             print("Error: Intercepción de clic en el elemento. ", str(e))
         except Exception as e:
             print("Ocurrió un error inesperado: ", str(e))
+            error+=1
+            if error>2:
+                UltimoN.append(sumN-3)
+                break
+            
     
     
     
     # Cierra el navegador y detiene el servicio
+    time.sleep(2)
     ScanQR.append(1)
-    time.sleep(30)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
@@ -260,29 +271,6 @@ def program(archivo_excel,rutaCarpeta):
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
     
-    if len(ScanQR)==0:
-        
-        # Espera a que el elemento del QR esté presente
-        qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
-
-        # Espera a que la imagen del QR cargue
-        WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-        
-        # Boton de recordar inicio de secion
-        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, '#mat-mdc-slide-toggle-1 > div'))).click()
-
-        # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-        WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
-
-        # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
-        # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
-        print("El QR se ha escaneado.")
-
-        # Espera a que aparezca el botón
-        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a'))).click()
-
-        # Buscar el elemento de nuevo mensaje
-        WebDriverWait(browser, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-main-nav > div > mw-fab-link > a > span.mdc-button__label')))
     cont = 0
     sumN= UltimoN[-1]+1
     for fila in hoja.iter_rows(min_row=UltimoN[-1], values_only=True):  
@@ -332,7 +320,7 @@ def program(archivo_excel,rutaCarpeta):
             
             cont=cont+1
             print(cont)
-            if cont>249:
+            if cont>2:
                 UltimoN.append(sumN+1)
                 break
                     
@@ -346,7 +334,7 @@ def program(archivo_excel,rutaCarpeta):
     
     
     # Cierra el navegador y detiene el servicio
-    ScanQR.append(1)
+    ScanQR.append(3)
     browser.quit()
     chrome_service.stop()
     time.sleep(30)
@@ -433,12 +421,19 @@ def Menu():
             interfaz()
             try:
                 if BaseDatosMasiva and MensajeMasivo:
-                    rutaCarpeta=crearCarpetaGoogle()
                     
+                    for numeroCarpeta in range(1,2+1):
+                        rutaCarpeta=registrarQR(numeroCarpeta)
+                        rutaCarpetaV[i]=rutaCarpeta
+                        
                     fin = contar_filas("Hoja1", BaseDatosMasiva)
                     intervalos= fin/250
+                    numero =0
+                    
                     for i in range(0,int(math.ceil(intervalos))) :
-                        program(BaseDatosMasiva, rutaCarpeta)
+                        numero = i % 2 + 1
+                        program(BaseDatosMasiva,rutaCarpetaV[numero])
+                        
                         
                     print("Trabajo terminado corrrectamente")
                     
@@ -450,13 +445,21 @@ def Menu():
             limpiarcmd()
             interfaz()
             if BaseDatosMasiva and MensajeMasivo:
-                rutaCarpeta=crearCarpetaGoogle()
                 
+                rutaCarpetaV = [""] * (2 + 1)  # Inicializa la lista con elementos vacíos
+                for numeroCarpeta in range(1,2+1):
+                        rutaCarpeta=registrarQR(numeroCarpeta)
+                        rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+                        
                 fin = contar_filas("Hoja1", BaseDatosMasiva)
                 intervalos= fin/250
+                
+                numero =0
                 for i in range(0,int(math.ceil(intervalos))) :
-                    programSinImagenes(BaseDatosMasiva, rutaCarpeta)
-                    
+                    numero = i % 2 + 1
+                    programSinImagenes(BaseDatosMasiva,rutaCarpetaV[numero])
+
+                
                 print("Trabajo terminado corrrectamente")
             else:
         
