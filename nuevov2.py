@@ -340,7 +340,6 @@ def program(archivo_excel,rutaCarpeta):
     ScanQR.append(3)
     browser.quit()
     chrome_service.stop()
-    time.sleep(30)
     print("Envio completado")
     libro.close()
 
@@ -436,7 +435,7 @@ def Menu():
                     numero =0
                     for i in range(0,int(math.ceil(intervalos))) :
                         numero = i % 2 + 1
-                        programSinImagenes(BaseDatosMasiva,rutaCarpetaV[numero])
+                        program(BaseDatosMasiva,rutaCarpetaV[numero])
 
                     
                     print("Trabajo terminado corrrectamente")
