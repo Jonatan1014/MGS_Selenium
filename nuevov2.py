@@ -1,5 +1,4 @@
 import openpyxl
-import os
 import tkinter as tk
 from tkinter import filedialog
 from selenium import webdriver
@@ -14,6 +13,9 @@ import easygui as eg
 import os
 import time
 import math
+from openpyxl import Workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
+import pandas as pd
 
 global cont
 ScanQR=[]
@@ -21,6 +23,62 @@ UltimoN=[1]
 rutaCarpetaV=[]
 extension1 = ["*.xlsx"]
 os.system('color 2' if os.name == 'nt' else 'clear')
+
+def limpiarcmd():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def interfaz():
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
+                                               _/ |                                  
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
+
+def Bienvenido(duration):
+    limpiarcmd()
+    chars = ['|', '/', '-', '\\']
+    num_chars = len(chars)
+    start_time = time.time()
+    
+    while time.time() - start_time < duration:
+        for i in range(num_chars):
+            print(f'\rCargando {chars[i]}', end='')
+            time.sleep(0.1)
+    
+    print('\rCarga Completa!   ')
+    
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
+                                               _/ |                                  
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
+    chars = ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷']
+    num_chars = len(chars)
+    start_time = time.time()
+    
+    while time.time() - start_time < duration:
+        for i in range(num_chars):
+            print(f'\rIniciando Programa {chars[i]}', end='')
+            time.sleep(0.1)
+    
+    print('\rIniciado Con Exito!   ')
+    time.sleep(2)
+
+
 
 def registrarQR(numeroCarpeta):
     
@@ -89,71 +147,75 @@ def registrarQR(numeroCarpeta):
         
     return (folder_path)
 
-def limpiarcmd():
-    os.system('cls' if os.name == 'nt' else 'clear')
+def directorioExcel():
+    
+    folder_name = "Excel Directorio"
 
-def interfaz():
-    hola = """
-         __  __                                  _           _____   __  __    _____ 
-        |  \/  |                                (_)         / ____| |  \/  |  / ____|
-        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
-        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
-        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
-        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
-                                               _/ |                                  
-                                              |__/                                   
-        by: JSB
-        """
-    print(hola)
+    # Obtiene la ruta absoluta de la carpeta actual donde está el programa
+    current_directory = os.path.dirname(os.path.abspath(__file__))
 
-def Bienvenido(duration):
-    limpiarcmd()
-    chars = ['|', '/', '-', '\\']
-    num_chars = len(chars)
-    start_time = time.time()
-    
-    while time.time() - start_time < duration:
-        for i in range(num_chars):
-            print(f'\rCargando {chars[i]}', end='')
-            time.sleep(0.1)
-    
-    print('\rCarga Completa!   ')
-    
-    hola = """
-         __  __                                  _           _____   __  __    _____ 
-        |  \/  |                                (_)         / ____| |  \/  |  / ____|
-        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
-        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
-        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
-        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |_____/ 
-                                               _/ |                                  
-                                              |__/                                   
-        by: JSB
-        """
-    print(hola)
-    chars = ['⣾', '⣽', '⣻', '⢿', '⡿', '⣟', '⣯', '⣷']
-    num_chars = len(chars)
-    start_time = time.time()
-    
-    while time.time() - start_time < duration:
-        for i in range(num_chars):
-            print(f'\rIniciando Programa {chars[i]}', end='')
-            time.sleep(0.1)
-    
-    print('\rIniciado Con Exito!   ')
-    time.sleep(2)
+    # Ruta completa para la carpeta dentro de la carpeta actual
+    folder_path = os.path.join(current_directory, folder_name)
 
-def contar_filas(nombre_hoja,archivo_excel):
-    # Carga el archivo de Excel
-    libro = openpyxl.load_workbook(archivo_excel)
+    # Verificar si la carpeta ya existe
+    if os.path.exists(folder_path):
+        for root, dirs, files in os.walk(folder_path, topdown=False):
+            for file in files:
+                file_path = os.path.join(root, file)
+                os.remove(file_path)
+            for dir in dirs:
+                dir_path = os.path.join(root, dir)
+                os.rmdir(dir_path)
+
+        os.rmdir(folder_path)
+        
+    # Crea la carpeta
+    os.makedirs(folder_path)
+
+    print("Carpeta: "+str(folder_name)+" creada con exito!")
+    time.sleep(1)
     
-    # Accede a la hoja específica
-    hoja = libro[nombre_hoja]
-    
-    # Cuenta las filas en la hoja
-    numero_filas = hoja.max_row
-    
-    return numero_filas
+    return (folder_path)
+
+
+def dividir_archivo_excel(ruta_archivo, filas_por_grupo, ruta_destino):
+    # Cargar el archivo Excel original
+    df = pd.read_excel(ruta_archivo, header=None)
+
+    # Calcular el número total de grupos
+    total_grupos = math.ceil(len(df) / filas_por_grupo)
+
+    # Iterar sobre los grupos y guardar cada uno en un nuevo archivo Excel
+    for i in range(total_grupos):
+        inicio = i * filas_por_grupo
+        fin = (i + 1) * filas_por_grupo
+
+        grupo_df = df.iloc[inicio:fin]
+
+        # Si es el último grupo, llenar las filas faltantes con "NULL"
+        if i == total_grupos - 1:
+            filas_faltantes = filas_por_grupo - len(grupo_df)
+            for _ in range(filas_faltantes):
+                grupo_df = grupo_df.append(['NULL'] * len(df.columns), ignore_index=True)
+
+        # Crear un nuevo archivo Excel para cada grupo
+        nuevo_archivo = os.path.join(ruta_destino, f"grupo_{i + 1}.xlsx")
+        workbook = Workbook()
+        sheet = workbook.active
+
+        for r_idx, row in enumerate(dataframe_to_rows(grupo_df, index=False), 1):
+            for c_idx, value in enumerate(row, 1):
+                sheet.cell(row=r_idx, column=c_idx, value=value)
+
+        # Eliminar la primera fila si no es el primer grupo
+        if i != 0:
+            sheet.delete_rows(1)
+
+        # Guardar el grupo en un nuevo archivo Excel
+        workbook.save(filename=nuevo_archivo)
+
+        print(f"Grupo {i + 1} guardado en {nuevo_archivo}")
+
 
 # Programa sin envio de imagenes
 def programSinImagenes(archivo_excel,rutaCarpeta):            
@@ -343,6 +405,20 @@ def program(archivo_excel,rutaCarpeta):
     print("Envio completado")
     libro.close()
 
+
+
+def contar_filas(nombre_hoja,archivo_excel):
+    # Carga el archivo de Excel
+    libro = openpyxl.load_workbook(archivo_excel)
+    
+    # Accede a la hoja específica
+    hoja = libro[nombre_hoja]
+    
+    # Cuenta las filas en la hoja
+    numero_filas = hoja.max_row
+    
+    return numero_filas
+
 def buscar_base_de_datos():
     global BaseDatosMasiva
     root = tk.Tk()
@@ -351,7 +427,7 @@ def buscar_base_de_datos():
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
     if BaseDatosMasiva:
         print("Base de Datos seleccionada: " + BaseDatosMasiva)
-        return True
+        return True, BaseDatosMasiva
     else:
         salir=str(input("Base de Datos no Seleccionada\n¿Desea salir? y/n\n"))
         limpiarcmd()
@@ -367,7 +443,16 @@ def buscar_base_de_datos():
                     break
                 else:
                     buscar_base_de_datos()
-                    
+
+def introducir_mensaje():
+    global MensajeMasivo
+    MensajeMasivo = eg.codebox(msg='Entrada de fuente',title='Control: codebox')
+    if MensajeMasivo:
+        print("Mensaje escrito: " + MensajeMasivo)
+        mensaje=validarMensaje()
+        if not mensaje:
+            introducir_mensaje()
+
 def validarMensaje():
     mensaje = str(input("El mensaje es correcto? y/n "))
     while True:
@@ -381,15 +466,6 @@ def validarMensaje():
                 return True
             else:
                 return False
-    
-def introducir_mensaje():
-    global MensajeMasivo
-    MensajeMasivo = eg.codebox(msg='Entrada de fuente',title='Control: codebox')
-    if MensajeMasivo:
-        print("Mensaje escrito: " + MensajeMasivo)
-        mensaje=validarMensaje()
-        if not mensaje:
-            introducir_mensaje()
 
 def validarImagen():
     imagen = str(input("Desea Enviar Imagen? y/n: "))
@@ -407,15 +483,22 @@ def validarImagen():
                 
 def Menu():
     Bienvenido(1)
-    validarBD=buscar_base_de_datos()
+    ruta_archivo_original,validarBD=buscar_base_de_datos()
     if validarBD:
         time.sleep(1)
         limpiarcmd()
         interfaz()
+        ruta_destino=directorioExcel()
+        dividir_archivo_excel(ruta_archivo_original, 250, ruta_destino)
+        time.sleep(1)
+        limpiarcmd()
+        interfaz()
+
         image=validarImagen()
         time.sleep(1)
         limpiarcmd()
         interfaz()
+
         if image:
             introducir_mensaje()
             time.sleep(1)
@@ -469,4 +552,6 @@ def Menu():
                 print("Complete todos los campos antes de comenzar.")
     else:
         print("Adios!")
+
+
 Menu()
