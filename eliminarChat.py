@@ -15,8 +15,8 @@ while True:
     # Configura las opciones del navegador
     options = webdriver.ChromeOptions()
     options.add_argument("--disable-notifications")
-    options.add_argument("--remote-debugging-port=9222")
-    options.add_argument('user-data-dir='+rutaCarpeta)
+    #options.add_argument("--remote-debugging-port=9222")
+    #options.add_argument('user-data-dir='+rutaCarpeta)
 
     # Inicializa el WebDriver utilizando el servicio y las opciones
     browser = webdriver.Chrome(service=chrome_service, options=options)

@@ -528,7 +528,9 @@ def programGrupos(rutaCarpeta,numero):
         if Celular=="NULL":
             break
         try:
-        
+            
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input')))
+
             # agregar numero de telefono
             browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
                 
@@ -622,6 +624,8 @@ def programGruposSinImagenes(rutaCarpeta,numero):
             break
         try:
         
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input')))
+
             # agregar numero de telefono
             browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
                 
