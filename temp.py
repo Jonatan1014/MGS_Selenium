@@ -6,8 +6,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import StaleElementReferenceException, ElementClickInterceptedException
 from selenium.webdriver.common.action_chains import ActionChains
+import openpyxl
 import time
-for i in range (1,20+1):
+MensajeMasivo = "hola"
+
+libro = openpyxl.load_workbook(r"C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\pruebas.xlsx")
+hoja = libro["Hoja1"]
+for fila in hoja.iter_rows(min_row=1, values_only=True):  
+    Celular = " - ".join(map(str, fila))
     # Configura el servicio de ChromeDriver
     chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
     chrome_service = ChromeService(chrome_driver_path)
@@ -24,17 +30,58 @@ for i in range (1,20+1):
 
     # Abre la página web
     browser.get('https://messages.google.com/web/conversations')
+    time.sleep(15)
 
-    # Espera a que el elemento del QR esté presente
-    qr_element = WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mw-qr-code img')))
+    try:
+        # Espera hasta que el elemento "loader" no sea visible
+        WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+        
+        WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+        
+        # agregar numero de telefono
+        browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
 
-    # Espera a que la imagen del QR cargue
-    WebDriverWait(browser, 10).until(lambda driver: qr_element.get_attribute("complete"))
-
-    # Espera a que cambie el src del elemento del QR (indicando que se escaneó)
-    WebDriverWait(browser, 60).until(EC.staleness_of(qr_element))
+        # seleccionar el numero ingresado
+        WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
 
 
-    # Cierra el navegador y detiene el servicio
-    browser.quit()
-    chrome_service.stop()
+        
+        cont=cont+1
+        print(cont)
+        
+        
+                
+    except StaleElementReferenceException as e:
+        print("Error: Elemento de página obsoleto. ", str(e))
+    except ElementClickInterceptedException as e:
+        print("Error: Intercepción de clic en el elemento. ", str(e))
+    except Exception as e:
+        print("Ocurrió un error inesperado: ", str(e))
+        
+
+# Espera hasta que el botón sea clickeable
+WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
+# Espera a que la casilla de texto esté presente y sea visible
+WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+
+# Dividir el mensaje en párrafos
+parrafos = MensajeMasivo.split('\n')
+
+# Escribir cada párrafo en el área de texto
+for i, parrafo in enumerate(parrafos):
+    # Escribir el párrafo actual
+    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+    # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+    if i < len(parrafos) - 1:
+        ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+# Enviar el último párrafo
+browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+
+print("Mensaje Grupos Enviado")
+# Cierra el navegador y detiene el servicio
+browser.quit()
+chrome_service.stop()
+print("Envio completado")
+libro.close()

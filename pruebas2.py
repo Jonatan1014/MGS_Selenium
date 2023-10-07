@@ -277,6 +277,8 @@ def dividir_archivo_excel(ruta_archivo, filas_por_grupo, ruta_destino):
     time.sleep(1)
     return total_grupos
 
+
+
 # Programa sin envio de imagenes
 def programSinImagenes(rutaCarpeta, numero):  
     
@@ -313,6 +315,8 @@ def programSinImagenes(rutaCarpeta, numero):
     error = 0
     for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
+        if Celular=="NULL":
+            break
         try:
             # Espera hasta que el elemento "loader" no sea visible
             WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
@@ -378,7 +382,6 @@ def programSinImagenes(rutaCarpeta, numero):
     print("Envio completado")
     libro.close()
 
-
 # Programa con envio de imagenes
 def program(rutaCarpeta,numero):  
     limpiarcmd()
@@ -414,6 +417,8 @@ def program(rutaCarpeta,numero):
     error = 0
     for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
+        if Celular=="NULL":
+            break
         try:
             # Espera hasta que el elemento "loader" no sea visible
             WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
@@ -520,6 +525,8 @@ def programGrupos(rutaCarpeta,numero):
     error = 0
     for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
+        if Celular=="NULL":
+            break
         try:
             # Espera hasta que el elemento "loader" no sea visible
             WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
@@ -582,7 +589,6 @@ def programGrupos(rutaCarpeta,numero):
     print("Envio completado")
     libro.close()
     
-
 # Programa Grupos sin envio de imagenes
 def programGruposSinImagenes(rutaCarpeta,numero):  
     limpiarcmd()
@@ -618,6 +624,8 @@ def programGruposSinImagenes(rutaCarpeta,numero):
     error = 0
     for fila in hoja.iter_rows(min_row=1, values_only=True):  
         Celular = " - ".join(map(str, fila))
+        if Celular=="NULL":
+            break
         try:
             # Espera hasta que el elemento "loader" no sea visible
             WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
@@ -625,11 +633,13 @@ def programGruposSinImagenes(rutaCarpeta,numero):
             WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
             
             # agregar numero de telefono
-            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular+" ")
 
             # seleccionar el numero ingresado
             WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
 
+            time.sleep(1)
+            ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
 
             
             cont=cont+1
@@ -677,6 +687,7 @@ def programGruposSinImagenes(rutaCarpeta,numero):
     print("Envio completado")
     libro.close()
     
+
 
 
 def buscar_base_de_datos():
