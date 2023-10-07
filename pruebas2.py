@@ -22,6 +22,7 @@ ScanQR=[]
 UltimoN=[1]
 rutaCarpetaV=[]
 extension1 = ["*.xlsx"]
+tipodeEnvio=["",""]
 os.system('color 2' if os.name == 'nt' else 'clear')
 
 def limpiarcmd():
@@ -40,6 +41,21 @@ def interfaz():
         by: JSB
         """
     print(hola)
+
+def interfazGrupos():
+    hola = """
+         __  __                                  _           _____   __  __    _____ 
+        |  \/  |                                (_)         / ____| |  \/  |  / ____|
+        | \  / |   ___   _ __    ___    __ _     _    ___  | (___   | \  / | | (___  
+        | |\/| |  / _ \ | '_ \  / __|  / _` |   | |  / _ \  \___ \  | |\/| |  \___ \ 
+        | |  | | |  __/ | | | | \__ \ | (_| |   | | |  __/  ____) | | |  | |  ____) |
+        |_|  |_|  \___| |_| |_| |___/  \__,_|   | |  \___| |_____/  |_|  |_| |Grupos/
+                                               _/ |                           ¯¯¯¯¯¯        
+                                              |__/                                   
+        by: JSB
+        """
+    print(hola)
+
 
 def Bienvenido(duration):
     limpiarcmd()
@@ -102,7 +118,10 @@ def registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome):
     # Crea la carpeta
     os.makedirs(folder_path)
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     print("Carpeta: "+str(folder_name)+" creada con exito!\nComenzando Registro de QR")
     time.sleep(1)
     chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
@@ -138,7 +157,10 @@ def registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome):
     # Agrega tu lógica aquí para lo que quieras hacer después de escanear el QR
     # Por ejemplo, puedes imprimir un mensaje indicando que el QR se ha escaneado
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     print("El QR se ha escaneado.")
     time.sleep(3)
     browser.quit()
@@ -172,7 +194,10 @@ def directorioExcel():
     # Crea la carpeta
     os.makedirs(folder_path)
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     print("Carpeta: "+str(folder_name)+" creada con exito!")
     time.sleep(1)
     
@@ -203,7 +228,10 @@ def directorioGoogleChrome():
     # Crea la carpeta
     os.makedirs(folder_path)
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     print("Carpeta: "+str(folder_name)+" creada con exito!")
     time.sleep(1)
     
@@ -351,8 +379,6 @@ def programSinImagenes(rutaCarpeta, numero):
     libro.close()
 
 
-
-
 # Programa con envio de imagenes
 def program(rutaCarpeta,numero):  
     limpiarcmd()
@@ -459,13 +485,209 @@ def program(rutaCarpeta,numero):
     libro.close()
     
 
+# Programa Grupos con envio de imagenes
+def programGrupos(rutaCarpeta,numero):  
+    limpiarcmd()
+    interfaz()
+    # Obtiene la ruta del directorio actual del script
+    ruta_script = os.path.dirname(__file__)
+
+    # Combina la ruta del script con el nombre de la carpeta
+    carpeta = r"Excel Directorio\grupo_"+str(numero)+".xlsx"  # Reemplaza con el nombre de tu carpeta
+    ruta_carpeta = os.path.join(ruta_script, carpeta)          
+
+    libro = openpyxl.load_workbook(ruta_carpeta)
+    hoja = libro["Sheet"]
+    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+    chrome_service = ChromeService(chrome_driver_path)
+
+    chrome_service.start()
+
+    # Configura las opciones del navegador
+    options = webdriver.ChromeOptions()
+    # Configura opciones adicionales si es necesario
+    # Deshabilita las notificaciones
+    options.add_argument("--disable-notifications")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument('user-data-dir='+rutaCarpeta)
+    # Inicializa el WebDriver utilizando el servicio y las opciones
+    browser = webdriver.Chrome(service=chrome_service, options=options)
+
+    # Abre la página web
+    browser.get('https://messages.google.com/web/conversations/new?mode=new-group')
+    
+    cont = 0
+    error = 0
+    for fila in hoja.iter_rows(min_row=1, values_only=True):  
+        Celular = " - ".join(map(str, fila))
+        try:
+            # Espera hasta que el elemento "loader" no sea visible
+            WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+            
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+            
+            # agregar numero de telefono
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+
+            # seleccionar el numero ingresado
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
+    
+            cont=cont+1
+            limpiarcmd()
+            interfaz()
+            print(cont)
+            
+            
+                    
+        except StaleElementReferenceException as e:
+            print("Error: Elemento de página obsoleto. ", str(e))
+        except ElementClickInterceptedException as e:
+            print("Error: Intercepción de clic en el elemento. ", str(e))
+        except Exception as e:
+            print("Ocurrió un error inesperado: ", str(e))
+            error+=1
+            if error>2:
+                break
+    
+    # Espera hasta que el botón sea clickeable
+    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
+    # Espera a que la casilla de texto esté presente y sea visible
+    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+    
+    # Dividir el mensaje en párrafos
+    parrafos = MensajeMasivo.split('\n')
+
+    # Escribir cada párrafo en el área de texto
+    for i, parrafo in enumerate(parrafos):
+        # Escribir el párrafo actual
+        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+        # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+        if i < len(parrafos) - 1:
+            ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+    # Enviar el último párrafo
+    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+    
+    # Pega el texto en el campo de entrada usando la combinación de teclas "Control + V"
+    ActionChains(browser).key_down(Keys.CONTROL).send_keys('v').key_up(Keys.CONTROL).perform()
+    
+    # Enviar imagen con Enter
+    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+    # Cierra el navegador y detiene el servicio
+    print("Mensaje Grupos Enviado")
+    ScanQR.append(3)
+    browser.quit()
+    chrome_service.stop()
+    print("Envio completado")
+    libro.close()
+    
+
+# Programa Grupos sin envio de imagenes
+def programGruposSinImagenes(rutaCarpeta,numero):  
+    limpiarcmd()
+    interfaz()
+    # Obtiene la ruta del directorio actual del script
+    ruta_script = os.path.dirname(__file__)
+
+    # Combina la ruta del script con el nombre de la carpeta
+    carpeta = r"Excel Directorio\grupo_"+str(numero)+".xlsx"  # Reemplaza con el nombre de tu carpeta
+    ruta_carpeta = os.path.join(ruta_script, carpeta)          
+
+    libro = openpyxl.load_workbook(ruta_carpeta)
+    hoja = libro["Sheet"]
+    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+    chrome_service = ChromeService(chrome_driver_path)
+
+    chrome_service.start()
+
+    # Configura las opciones del navegador
+    options = webdriver.ChromeOptions()
+    # Configura opciones adicionales si es necesario
+    # Deshabilita las notificaciones
+    options.add_argument("--disable-notifications")
+    options.add_argument("--remote-debugging-port=9222")
+    options.add_argument('user-data-dir='+rutaCarpeta)
+    # Inicializa el WebDriver utilizando el servicio y las opciones
+    browser = webdriver.Chrome(service=chrome_service, options=options)
+
+    # Abre la página web
+    browser.get('https://messages.google.com/web/conversations/new?mode=new-group')
+    
+    cont = 0
+    error = 0
+    for fila in hoja.iter_rows(min_row=1, values_only=True):  
+        Celular = " - ".join(map(str, fila))
+        try:
+            # Espera hasta que el elemento "loader" no sea visible
+            WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+            
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+            
+            # agregar numero de telefono
+            browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+
+            # seleccionar el numero ingresado
+            WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
+
+
+            
+            cont=cont+1
+            limpiarcmd()
+            interfazGrupos()
+            print(cont)
+            
+            
+                    
+        except StaleElementReferenceException as e:
+            print("Error: Elemento de página obsoleto. ", str(e))
+        except ElementClickInterceptedException as e:
+            print("Error: Intercepción de clic en el elemento. ", str(e))
+        except Exception as e:
+            print("Ocurrió un error inesperado: ", str(e))
+            error+=1
+            if error>2:
+                break
+    
+    # Espera hasta que el botón sea clickeable
+    WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
+    # Espera a que la casilla de texto esté presente y sea visible
+    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+    
+    # Dividir el mensaje en párrafos
+    parrafos = MensajeMasivo.split('\n')
+
+    # Escribir cada párrafo en el área de texto
+    for i, parrafo in enumerate(parrafos):
+        # Escribir el párrafo actual
+        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+        # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+        if i < len(parrafos) - 1:
+            ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+    # Enviar el último párrafo
+    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
+
+    print("Mensaje Grupos Enviado")
+    # Cierra el navegador y detiene el servicio
+    ScanQR.append(3)
+    browser.quit()
+    chrome_service.stop()
+    print("Envio completado")
+    libro.close()
+    
+
 
 def buscar_base_de_datos():
     global BaseDatosMasiva
     root = tk.Tk()
     root.withdraw()  # Oculta la ventana principal
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     print("Buscar Base de Datos")
     time.sleep(1)
     BaseDatosMasiva = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx")])
@@ -491,7 +713,10 @@ def buscar_base_de_datos():
 
 def introducir_mensaje():
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     global MensajeMasivo
     MensajeMasivo = eg.codebox(msg='Entrada De Mensaje Spam',title='Control: codebox')
     if MensajeMasivo:
@@ -520,7 +745,10 @@ def validarMensaje():
 
 def validarImagen():
     limpiarcmd()
-    interfaz()
+    if tipodeEnvio[0]==2:
+        interfazGrupos()
+    else:
+        interfaz()
     imagen = str(input("Desea Enviar Imagen? y/n: "))
     while True:
         try:
@@ -533,74 +761,169 @@ def validarImagen():
                 return True
             else:
                 return False
-                
+
+def personal_Grupos():
+    print("1. Envio Personal"+
+          "\n2. Envio Grupos")
+    while True:
+        try:
+            tipoEnvio = int(input("Que desea hacer?"))
+            while tipoEnvio < 1 and tipoEnvio >2:
+                tipoEnvio = int(input("Que desea hacer?"))
+        except:
+            print("Opcion Invalida")
+        else:
+            tipodeEnvio[0]=tipoEnvio
+            return tipoEnvio
+
+
+               
 def Menu():
     Bienvenido(1)
-    validarBD,ruta_archivo_original=buscar_base_de_datos()
-    if validarBD:
-        time.sleep(1)
-        limpiarcmd()
-        interfaz()
+    tipoEnvio = personal_Grupos()
+    if tipoEnvio==1:
 
-        ruta_destino=directorioExcel()
-        total_grupos = dividir_archivo_excel(ruta_archivo_original, 250, ruta_destino)
-        time.sleep(1)
-        limpiarcmd()
-        interfaz()
-
-        image=validarImagen()
-        time.sleep(1)
-        limpiarcmd()
-        interfaz()
-
-        if image:
-            introducir_mensaje()
+        validarBD,ruta_archivo_original=buscar_base_de_datos()
+        if validarBD:
             time.sleep(1)
             limpiarcmd()
             interfaz()
-            
-            try:
-                if BaseDatosMasiva and MensajeMasivo:
-                    numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar"))
-                    rutaCarpetaGoogleChrome= directorioGoogleChrome()
-                    rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
 
-                    for numeroCarpeta in range(1,numeroQR+1):
-                            rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
-                            rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+            ruta_destino=directorioExcel()
+            total_grupos=dividir_archivo_excel(ruta_archivo_original, 250, ruta_destino)
+            time.sleep(1)
+            limpiarcmd()
+            interfaz()
 
-                    for numero in range(1,numeroQR+1):
-                        program(rutaCarpetaV[numero],numero)
+            image=validarImagen()
+            time.sleep(1)
+            limpiarcmd()
+            interfaz()
 
-                    
-                    print("Trabajo terminado corrrectamente")
-                    
-            except Exception as e:
-                print("Complete todos los campos antes de comenzar."+str(e))
+            if image:
+                introducir_mensaje()
+                time.sleep(1)
+                limpiarcmd()
+                interfaz()
+                
+                try:
+                    if BaseDatosMasiva and MensajeMasivo:
+                        numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar\nRecomendados segun la base de datos: "+str(total_grupos)))
+                        rutaCarpetaGoogleChrome= directorioGoogleChrome()
+                        rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+
+                        for numeroCarpeta in range(1,numeroQR+1):
+                                rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
+                                rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+
+                        for numero in range(1,numeroQR+1):
+                            program(rutaCarpetaV[numero],numero)
+
+                        
+                        print("Trabajo terminado corrrectamente")
+                        
+                except Exception as e:
+                    print("Complete todos los campos antes de comenzar."+str(e))
+            else:
+                introducir_mensaje()
+                time.sleep(1)
+                limpiarcmd()
+                interfaz()
+                try:
+                    if BaseDatosMasiva and MensajeMasivo:
+                        numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar\nRecomendados segun la base de datos: "+str(total_grupos)))
+                        rutaCarpetaGoogleChrome= directorioGoogleChrome()
+                        rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+
+                        for numeroCarpeta in range(1,numeroQR+1):
+                                rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
+                                rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+
+                        for numero in range(1,numeroQR+1):
+                            programSinImagenes(rutaCarpetaV[numero], numero)
+
+                        
+                        print("Trabajo terminado corrrectamente")
+                        
+                except Exception as e:
+                    print("Complete todos los campos antes de comenzar."+str(e))
         else:
-            introducir_mensaje()
-            time.sleep(1)
-            limpiarcmd()
-            interfaz()
-            try:
-                if BaseDatosMasiva and MensajeMasivo:
-                    numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar"))
-                    rutaCarpetaGoogleChrome= directorioGoogleChrome()
-                    rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+            print("Adios!")
 
-                    for numeroCarpeta in range(1,numeroQR+1):
-                            rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
-                            rutaCarpetaV[numeroCarpeta]=rutaCarpeta
 
-                    for numero in range(1,numeroQR+1):
-                        programSinImagenes(rutaCarpetaV[numero], numero)
 
-                    
-                    print("Trabajo terminado corrrectamente")
-                    
-            except Exception as e:
-                print("Complete todos los campos antes de comenzar."+str(e))
+
     else:
-        print("Adios!")
+        try:
+            validarBD,ruta_archivo_original=buscar_base_de_datos()
+            if validarBD:
+                time.sleep(1)
+                limpiarcmd()
+                interfazGrupos()
+
+                ruta_destino=directorioExcel()
+                total_grupos=dividir_archivo_excel(ruta_archivo_original, 400, ruta_destino)
+                time.sleep(1)
+                limpiarcmd()
+                interfazGrupos()
+
+                image=validarImagen()
+                time.sleep(1)
+                limpiarcmd()
+                interfazGrupos()
+
+                if image:
+                    introducir_mensaje()
+                    time.sleep(1)
+                    limpiarcmd()
+                    interfazGrupos()
+                    
+                    try:
+                        if BaseDatosMasiva and MensajeMasivo:
+                            numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar\nRecomendados segun la base de datos: "+str(total_grupos)))
+                            rutaCarpetaGoogleChrome= directorioGoogleChrome()
+                            rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+
+                            for numeroCarpeta in range(1,numeroQR+1):
+                                    rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
+                                    rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+
+                            for numero in range(1,numeroQR+1):
+                                programGrupos(rutaCarpetaV[numero],numero)
+
+                            
+                            print("Trabajo terminado corrrectamente")
+                            
+                    except Exception as e:
+                        print("Complete todos los campos antes de comenzar."+str(e))
+                else:
+                    introducir_mensaje()
+                    time.sleep(1)
+                    limpiarcmd()
+                    interfazGrupos()
+                    try:
+                        if BaseDatosMasiva and MensajeMasivo:
+                            numeroQR=int(input("Introduzca la cantidad de QR\nQR = Cantiad de Excel a Trabajar\nRecomendados segun la base de datos: "+str(total_grupos)))
+                            rutaCarpetaGoogleChrome= directorioGoogleChrome()
+                            rutaCarpetaV = [""] * (numeroQR + 1)  # Inicializa la lista con elementos vacíos
+
+                            for numeroCarpeta in range(1,numeroQR+1):
+                                    rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
+                                    rutaCarpetaV[numeroCarpeta]=rutaCarpeta
+
+                            for numero in range(1,numeroQR+1):
+                                programGruposSinImagenes(rutaCarpetaV[numero], numero)
+
+                            
+                            print("Trabajo terminado corrrectamente")
+                            
+                    except Exception as e:
+                        print("Complete todos los campos antes de comenzar."+str(e))
+            else:
+                print("Adios!")
+        except Exception as e:
+            print("Ocurrio un error inesperado" +str(e))
+            i=input()
+
 
 Menu()
