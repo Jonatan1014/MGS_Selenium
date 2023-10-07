@@ -10,40 +10,47 @@ import openpyxl
 import time
 MensajeMasivo = "hola"
 
-libro = openpyxl.load_workbook(r"C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\pruebas.xlsx")
+libro = openpyxl.load_workbook(r"C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\400.xlsx")
 hoja = libro["Hoja1"]
+# Configura el servicio de ChromeDriver
+chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
+chrome_service = ChromeService(chrome_driver_path)
+chrome_service.start()
+
+# Configura las opciones del navegador
+options = webdriver.ChromeOptions()
+# Configura opciones adicionales si es necesario
+# Deshabilita las notificaciones
+options.add_argument("--disable-notifications")
+options.add_argument("--remote-debugging-port=9222")
+options.add_argument(r'user-data-dir=C:\Users\farud\OneDrive\Escritorio\MGS_Selenium\Google Chrome')
+
+# Inicializa el WebDriver utilizando el servicio y las opciones
+browser = webdriver.Chrome(service=chrome_service, options=options)
+
+# Abre la página web
+# Abre la página web
+browser.get('https://messages.google.com/web/conversations/new?mode=new-group')
+# Espera hasta que el elemento "loader" no sea visible
+WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+
+WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
+
+cont = 0
 for fila in hoja.iter_rows(min_row=1, values_only=True):  
     Celular = " - ".join(map(str, fila))
-    # Configura el servicio de ChromeDriver
-    chrome_driver_path = "chromedriver.exe"  # Reemplaza con tu ruta
-    chrome_service = ChromeService(chrome_driver_path)
-    chrome_service.start()
+    
 
-    # Configura las opciones del navegador
-    options = webdriver.ChromeOptions()
-    # Configura opciones adicionales si es necesario
-    # Deshabilita las notificaciones
-    options.add_argument("--disable-notifications")
-
-    # Inicializa el WebDriver utilizando el servicio y las opciones
-    browser = webdriver.Chrome(service=chrome_service, options=options)
-
-    # Abre la página web
-    browser.get('https://messages.google.com/web/conversations')
-    time.sleep(15)
 
     try:
-        # Espera hasta que el elemento "loader" no sea visible
-        WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
-        
-        WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
         
         # agregar numero de telefono
-        browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
-
+        campo_entrada = browser.find_element(By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input').send_keys(Celular)
+        
+            
         # seleccionar el numero ingresado
         WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
-
+   
 
         
         cont=cont+1
@@ -58,7 +65,7 @@ for fila in hoja.iter_rows(min_row=1, values_only=True):
     except Exception as e:
         print("Ocurrió un error inesperado: ", str(e))
         
-
+"""
 # Espera hasta que el botón sea clickeable
 WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
 # Espera a que la casilla de texto esté presente y sea visible
@@ -78,8 +85,9 @@ for i, parrafo in enumerate(parrafos):
 
 # Enviar el último párrafo
 browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-
+"""
 print("Mensaje Grupos Enviado")
+time.sleep(3)
 # Cierra el navegador y detiene el servicio
 browser.quit()
 chrome_service.stop()
