@@ -30,9 +30,9 @@ browser = webdriver.Chrome(service=chrome_service, options=options)
 
 # Abre la página web
 # Abre la página web
-browser.get('https://messages.google.com/web/conversations/new?mode=new-group')
+browser.get('https://messages.google.com/web/conversations/new')
 # Espera hasta que el elemento "loader" no sea visible
-WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.ID, 'loader')))
+WebDriverWait(browser, 20).until(EC.invisibility_of_element_located((By.ID, 'loader')))
 
 WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > mw-new-conversation-sub-header > div > div.input-container > mw-contact-chips-input > div > div > input'))).click()
 
@@ -51,6 +51,25 @@ for fila in hoja.iter_rows(min_row=1, values_only=True):
         # seleccionar el numero ingresado
         WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'body > mw-app > mw-bootstrap > div > main > mw-main-container > div > mw-new-conversation-container > div > mw-contact-selector-button > button'))).click()
    
+        # Espera hasta que el botón sea clickeable
+        WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
+        # Espera a que la casilla de texto esté presente y sea visible
+        WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
+
+        # Dividir el mensaje en párrafos
+        parrafos = MensajeMasivo.split('\n')
+
+        # Escribir cada párrafo en el área de texto
+        for i, parrafo in enumerate(parrafos):
+            # Escribir el párrafo actual
+            browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
+
+            # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
+            if i < len(parrafos) - 1:
+                ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+        # Enviar el último párrafo
+        browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
 
         
         cont=cont+1
@@ -65,27 +84,8 @@ for fila in hoja.iter_rows(min_row=1, values_only=True):
     except Exception as e:
         print("Ocurrió un error inesperado: ", str(e))
         
-"""
-# Espera hasta que el botón sea clickeable
-WebDriverWait(browser, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'button[data-e2e-next-button]'))).click()
-# Espera a que la casilla de texto esté presente y sea visible
-WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'mws-autosize-textarea textarea')))
 
-# Dividir el mensaje en párrafos
-parrafos = MensajeMasivo.split('\n')
 
-# Escribir cada párrafo en el área de texto
-for i, parrafo in enumerate(parrafos):
-    # Escribir el párrafo actual
-    browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(parrafo)
-
-    # Si no es el último párrafo, enviar con "Shift + Enter" para empezar uno nuevo
-    if i < len(parrafos) - 1:
-        ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
-
-# Enviar el último párrafo
-browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
-"""
 print("Mensaje Grupos Enviado")
 time.sleep(3)
 # Cierra el navegador y detiene el servicio

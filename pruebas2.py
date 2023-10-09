@@ -16,6 +16,7 @@ import math
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
+import  json
 
 global cont
 ScanQR=[]
@@ -249,6 +250,21 @@ def dividir_archivo_excel(ruta_archivo, filas_por_grupo, ruta_destino):
     time.sleep(1)
     return total_grupos
 
+def numerodeArchivoExcelfuncion():
+    while True:
+        try:
+            numero=int(input("Desde que posicion de archivo de exel quiere continuar? "))
+            while numero <1:
+                print("Dato incorrecto")
+                numero=int(input("Desde que posicion de archivo de exel quiere continuar? "))
+                
+        except:
+            print("Dato incorrecto")
+        else:
+            return numero
+
+
+
 # Programa sin envio de imagenes
 def programSinImagenes(rutaCarpeta, numero):  
     
@@ -332,7 +348,9 @@ def programSinImagenes(rutaCarpeta, numero):
                 cont=cont+1
                 limpiarcmd()
                 interfaz()
-                print(cont)     
+                print(cont)  
+                time.sleep(0.5)
+                   
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
         except ElementClickInterceptedException as e:
@@ -351,8 +369,6 @@ def programSinImagenes(rutaCarpeta, numero):
     chrome_service.stop()
     print("Envio completado")
     libro.close()
-
-
 
 
 # Programa con envio de imagenes
@@ -444,6 +460,7 @@ def program(rutaCarpeta,numero):
                 limpiarcmd()
                 interfaz()
                 print(cont)
+                time.sleep(0.5)
                 
         except StaleElementReferenceException as e:
             print("Error: Elemento de página obsoleto. ", str(e))
@@ -458,12 +475,15 @@ def program(rutaCarpeta,numero):
     
     
     # Cierra el navegador y detiene el servicio
+    time.sleep(2)
     ScanQR.append(3)
     browser.quit()
     chrome_service.stop()
     print("Envio completado")
     libro.close()
     
+
+
 
 def buscar_base_de_datos():
     global BaseDatosMasiva
@@ -547,7 +567,7 @@ def Menu():
         interfaz()
 
         ruta_destino=directorioExcel()
-        total_grupos = dividir_archivo_excel(ruta_archivo_original, 250, ruta_destino)
+        total_grupos = dividir_archivo_excel(ruta_archivo_original, 4, ruta_destino)
         time.sleep(1)
         limpiarcmd()
         interfaz()
@@ -572,8 +592,8 @@ def Menu():
                     for numeroCarpeta in range(1,numeroQR+1):
                             rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
                             rutaCarpetaV[numeroCarpeta]=rutaCarpeta
-
-                    for numero in range(1,numeroQR+1):
+                    numerodeArchivoExcel = numerodeArchivoExcelfuncion()
+                    for numero in range(numerodeArchivoExcel,numeroQR+1):
                         program(rutaCarpetaV[numero],numero)
 
                     
