@@ -16,13 +16,53 @@ import math
 from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 import pandas as pd
-
+import requests
 
 global cont
 ScanQR=[]
 UltimoN=[1]
 rutaCarpetaV=[]
 extension1 = ["*.xlsx"]
+
+
+def buscarImagen():
+    root = tk.Tk()
+    root.withdraw()  # Oculta la ventana principal
+    limpiarcmd()
+    interfaz()
+    print("Buscar imagen para subir")
+    time.sleep(1)
+    image = filedialog.askopenfilename(filetypes=[("Excel Files", "*.jpeg")])
+    if image:
+        print("Imagen seleccionada: " + image)
+        time.sleep(1)
+        return True, image
+        
+
+
+def subirimagen(image):
+    url = "https://uguu.se/upload.php"
+    files = [("files[]", (image, open(image, "rb")))]
+    params = {"output": "json"}  # Puedes cambiar "json" a otro formato si lo deseas
+
+    response = requests.post(url, files=files, params=params)
+
+    if response.status_code == 200:
+        # La carga fue exitosa
+        response_json = response.json()
+        if response_json['success']:
+            file_info = response_json['files'][0]
+            file_url = file_info['url']
+            print("URL del archivo cargado:", file_url)
+            
+            return file_url
+        else:
+            print("Error en la carga:", response_json)
+    else:
+        print("Error en la carga. Código de estado:", response.status_code)
+
+
+
 os.system('color 2' if os.name == 'nt' else 'clear')
 
 def limpiarcmd():
@@ -358,7 +398,7 @@ def programSinImagenes(rutaCarpeta, numero):
 
 
 # Programa con envio de imagenes
-def program(rutaCarpeta,numero):  
+def program(rutaCarpeta,numero, image):  
     limpiarcmd()
     interfaz()
     # Obtiene la ruta del directorio actual del script
@@ -432,6 +472,8 @@ def program(rutaCarpeta,numero):
                     if i < len(parrafos) - 1:
                         ActionChains(browser).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
 
+                browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys("Si no puedes ver la imagen haz click aquí: "+str(image))
+                
                 # Enviar el último párrafo
                 browser.find_element(By.CSS_SELECTOR, 'mws-autosize-textarea textarea').send_keys(Keys.ENTER)
                 
@@ -547,7 +589,8 @@ def validarImagen():
 def Menu():
     Bienvenido(1)
     validarBD,ruta_archivo_original=buscar_base_de_datos()
-    if validarBD:
+    validarimage,rutaImagen=buscarImagen()
+    if validarBD and validarimage:
         time.sleep(1)
         limpiarcmd()
         interfaz()
@@ -579,7 +622,8 @@ def Menu():
                             rutaCarpeta=registrarQR(numeroCarpeta,rutaCarpetaGoogleChrome)
                             rutaCarpetaV[numeroCarpeta]=rutaCarpeta
                     for numero in range(1,numeroQR+1):
-                        program(rutaCarpetaV[numero],numero)
+                        link=subirimagen(rutaImagen)
+                        program(rutaCarpetaV[numero],numero, link)
 
                     
                     print("Trabajo terminado corrrectamente")
